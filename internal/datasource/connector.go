@@ -326,6 +326,22 @@ var ConnectorMetadataRegistry = map[string]ConnectorMetadata{
 		AuthType:     "password",
 		Capabilities: []string{"incremental", "hierarchical", "deletion_sync"},
 	},
+	types.ConnectorTypeHTTPAPI: {
+		Type:         types.ConnectorTypeHTTPAPI,
+		Name:         "HTTP API",
+		Description:  "Sync records from a business-system HTTP JSON API",
+		Priority:     15,
+		AuthType:     "token",
+		Capabilities: []string{"incremental"},
+	},
+	types.ConnectorTypeSQL: {
+		Type:         types.ConnectorTypeSQL,
+		Name:         "SQL Database",
+		Description:  "Sync rows from PostgreSQL or MySQL into knowledge documents",
+		Priority:     16,
+		AuthType:     "password",
+		Capabilities: []string{"incremental"},
+	},
 }
 
 // ListAvailableConnectors returns all available connector metadata

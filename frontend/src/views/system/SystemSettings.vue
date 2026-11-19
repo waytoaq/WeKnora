@@ -168,8 +168,27 @@
                       @update:model-value="onSsrfWhitelistModelUpdate" />
                   </div>
                 </t-popconfirm>
+                <div v-else-if="item.key === 'branding.logo'" class="branding-logo-control">
+                  <div class="branding-logo-preview" :class="{ 'is-empty': !String(editValues[item.key] || '') }">
+                    <img v-if="String(editValues[item.key] || '')" :src="String(editValues[item.key])" alt="" />
+                    <span v-else>{{ t('system.globalSettings.branding.logoEmpty') }}</span>
+                  </div>
+                  <div class="branding-logo-actions">
+                    <t-button theme="default" variant="outline" size="small" :disabled="savingKey === item.key"
+                      @click="triggerLogoPick(item)">
+                      {{ t('system.globalSettings.branding.uploadLogo') }}
+                    </t-button>
+                    <t-button v-if="String(editValues[item.key] || '')" theme="default" variant="text" size="small"
+                      :disabled="savingKey === item.key" @click="clearLogo(item)">
+                      {{ t('system.globalSettings.branding.clearLogo') }}
+                    </t-button>
+                  </div>
+                  <input ref="logoFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    class="branding-logo-file" @change="onLogoFileChange" />
+                </div>
                 <t-input v-else v-model="editValues[item.key]" :placeholder="placeholderFor(item)"
-                  :aria-label="keyLabel(item.key)" :disabled="savingKey === item.key" class="setting-input" clearable
+                  :aria-label="keyLabel(item.key)" :disabled="savingKey === item.key"
+                  :maxlength="item.key === 'branding.system_name' ? 64 : undefined" class="setting-input" clearable
                   @blur="onChange(item)" />
 
                 <!--
@@ -252,11 +271,69 @@ import {
 } from '@/api/system'
 import UserManagement from './UserManagement.vue'
 import { useDeploymentCapabilitiesStore } from '@/stores/deploymentCapabilities'
+import { useBrandingStore } from '@/stores/branding'
 import { PASSWORD_SPECIAL_CHARS } from '@/utils/passwordPolicy'
 import { isSettingValueDirty, resolveCurrentSetting } from './systemSettingsEdit'
 import { STORAGE_QUOTA_KEYS, resolveStorageQuota, formatStorageQuota } from './storageQuota'
 
 const deploymentCapabilities = useDeploymentCapabilitiesStore()
+const brandingStore = useBrandingStore()
+
+const logoFileInput = ref<HTMLInputElement | null>(null)
+const logoUploadTarget = ref<SystemSettingItem | null>(null)
+const BRANDING_LOGO_MAX_BYTES = 256 * 1024
+
+function syncBrandingFromSettings() {
+  const nameItem = settingsByKey.value.get('branding.system_name')
+  const logoItem = settingsByKey.value.get('branding.logo')
+  brandingStore.apply({
+    system_name: typeof nameItem?.value === 'string' ? nameItem.value : '',
+    logo: typeof logoItem?.value === 'string' ? logoItem.value : '',
+  })
+}
+
+function triggerLogoPick(item: SystemSettingItem) {
+  logoUploadTarget.value = item
+  logoFileInput.value?.click()
+}
+
+async function onLogoFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  const item = logoUploadTarget.value
+  input.value = ''
+  logoUploadTarget.value = null
+  if (!file || !item) return
+  if (!file.type.startsWith('image/')) {
+    MessagePlugin.error(t('system.globalSettings.branding.invalidImageType'))
+    return
+  }
+  if (file.size > BRANDING_LOGO_MAX_BYTES) {
+    MessagePlugin.error(t('system.globalSettings.branding.logoTooLarge'))
+    return
+  }
+  try {
+    const dataUrl = await readFileAsDataURL(file)
+    editValues[item.key] = dataUrl
+    await persistSetting(item)
+  } catch (err: any) {
+    MessagePlugin.error(err?.message || t('system.globalSettings.messages.saveFailed'))
+  }
+}
+
+async function clearLogo(item: SystemSettingItem) {
+  editValues[item.key] = ''
+  await persistSetting(item)
+}
+
+function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(new Error(t('system.globalSettings.branding.readFailed')))
+    reader.readAsDataURL(file)
+  })
+}
 
 const { t, tm, te, locale } = useI18n()
 const route = useRoute()
@@ -377,13 +454,17 @@ const savedKey = ref<string | null>(null)
 const saveAnnouncement = ref('')
 let savedKeyTimer: ReturnType<typeof setTimeout> | null = null
 
-type SettingsSection = 'users' | 'access' | 'tenant' | 'runtime' | 'security' | 'other'
+type SettingsSection = 'users' | 'branding' | 'access' | 'tenant' | 'runtime' | 'security' | 'other'
 
 // Product-oriented order, rather than the registry's alphabetical key order.
 // Unknown/out-of-band rows remain visible in a conditional "Other" tab so the
 // backend's diagnostic contract is preserved when a deployment contains an
 // unexpected key.
 const SETTINGS_SECTION_KEYS: Record<Exclude<SettingsSection, 'other' | 'users'>, readonly string[]> = {
+  branding: [
+    'branding.system_name',
+    'branding.logo',
+  ],
   access: [
     'auth.registration_mode',
     'auth.complex_password_enabled',
@@ -409,7 +490,7 @@ const SETTINGS_SECTION_KEYS: Record<Exclude<SettingsSection, 'other' | 'users'>,
   security: ['ssrf.whitelist', 'sandbox.docker_enabled'],
 }
 
-const activeSettingsSection = ref<SettingsSection>('access')
+const activeSettingsSection = ref<SettingsSection>('branding')
 const knownSettingKeys = new Set(Object.values(SETTINGS_SECTION_KEYS).flat())
 const settingsByKey = computed<Map<string, SystemSettingItem>>(() => new Map(settings.value.map((item) => [item.key, item])))
 const unknownSettings = computed(() => settings.value.filter((item) => !knownSettingKeys.has(item.key)))
@@ -417,6 +498,7 @@ const hasUnknownSettings = computed(() => unknownSettings.value.length > 0)
 
 const sectionTabs = computed(() => {
   const tabs: { key: SettingsSection; icon: string; label: string }[] = [
+    { key: 'branding', icon: 'image', label: t('system.globalSettings.sections.branding.title') },
     { key: 'access', icon: 'lock-on', label: t('system.globalSettings.sections.access.title') },
     { key: 'users', icon: 'usergroup', label: t('system.globalSettings.userList.rowLabel') },
     { key: 'tenant', icon: 'folder', label: t('system.globalSettings.sections.tenant.title') },
@@ -427,7 +509,7 @@ const sectionTabs = computed(() => {
   return tabs
 })
 
-const PANEL_KEYS: readonly SettingsSection[] = ['access', 'users', 'tenant', 'runtime', 'security', 'other']
+const PANEL_KEYS: readonly SettingsSection[] = ['branding', 'access', 'users', 'tenant', 'runtime', 'security', 'other']
 
 function panelFromQuery(): SettingsSection | null {
   const raw = Array.isArray(route.query.panel) ? route.query.panel[0] : route.query.panel
@@ -868,6 +950,9 @@ async function resetSetting(item: SystemSettingItem) {
     await resetSystemSetting(item.key)
     await loadSettings()
     markSettingSaved(item)
+    if (item.key === 'branding.system_name' || item.key === 'branding.logo') {
+      syncBrandingFromSettings()
+    }
     MessagePlugin.success(t('system.globalSettings.reset.success'))
     await refreshSandboxDockerCapability(item.key)
   } catch (err: any) {
@@ -895,6 +980,9 @@ async function persistSetting(item: SystemSettingItem) {
       ? [...(updated.value as unknown[])]
       : updated.value
     markSettingSaved(updated)
+    if (item.key === 'branding.system_name' || item.key === 'branding.logo') {
+      syncBrandingFromSettings()
+    }
     MessagePlugin.success(t('system.globalSettings.messages.saveSuccess'))
     await refreshSandboxDockerCapability(item.key)
   } catch (err: any) {
@@ -1253,5 +1341,47 @@ onUnmounted(() => {
   .desc {
     max-width: none;
   }
+}
+
+.branding-logo-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.branding-logo-preview {
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--td-component-stroke);
+  border-radius: var(--app-radius-sm);
+  background: var(--td-bg-color-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--td-text-color-placeholder);
+  font-size: var(--app-text-xs);
+
+  &.is-empty {
+    border-style: dashed;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.branding-logo-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.branding-logo-file {
+  display: none;
 }
 </style>

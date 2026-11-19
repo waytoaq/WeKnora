@@ -490,6 +490,12 @@ export function togglePinKnowledgeBase(id: string) {
   return put(`/api/v1/knowledge-bases/${id}/pin`);
 }
 
+/** Set or clear the tenant default knowledge base. Omit isDefault to toggle. */
+export function setDefaultKnowledgeBase(id: string, isDefault?: boolean) {
+  const body = typeof isDefault === 'boolean' ? { is_default: isDefault } : {};
+  return put(`/api/v1/knowledge-bases/${id}/default`, body);
+}
+
 // 知识文件 API（基于具体知识库）
 // data.tag_ids: 可选，指定知识所属的多个标签 ID
 export function uploadKnowledgeFile(

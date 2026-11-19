@@ -630,6 +630,10 @@ func (s *knowledgeBaseService) UpdateKnowledgeBase(ctx context.Context,
 	kb.Description = description
 	if config != nil {
 		kb.ChunkingConfig = config.ChunkingConfig
+		if config.TextPreprocessConfig != nil {
+			kb.TextPreprocessConfig = *config.TextPreprocessConfig
+			changedFields = append(changedFields, "text_preprocess_config")
+		}
 		// Replaced only when the request carried one, so a caller that does not
 		// know about the image settings cannot wipe them.
 		if config.ImageProcessingConfig != nil {
@@ -834,6 +838,50 @@ func (s *knowledgeBaseService) requireModelType(
 		return apperrors.NewBadRequestError(field + " must be a " + string(want) + " model")
 	}
 	return nil
+}
+
+// SetDefaultKnowledgeBase marks or clears the tenant's default knowledge base.
+// Setting a new default clears any previous default in the same tenant.
+func (s *knowledgeBaseService) SetDefaultKnowledgeBase(
+	ctx context.Context, id string, isDefault bool,
+) (*types.KnowledgeBase, error) {
+	if id == "" {
+		return nil, errors.New("knowledge base ID cannot be empty")
+	}
+	tenantID := types.MustTenantIDFromContext(ctx)
+	kb, err := s.repo.GetKnowledgeBaseByIDAndTenant(ctx, id, tenantID)
+	if err != nil {
+		logger.ErrorWithFields(ctx, err, map[string]interface{}{
+			"knowledge_base_id": id,
+			"tenant_id":         tenantID,
+		})
+		return nil, err
+	}
+	if kb.IsTemporary {
+		return nil, errors.New("temporary knowledge base cannot be default")
+	}
+	if isDefault && !kb.IsDefault {
+		others, listErr := s.repo.ListKnowledgeBasesByTenantID(ctx, tenantID)
+		if listErr != nil {
+			return nil, listErr
+		}
+		for _, other := range others {
+			if other == nil || other.ID == id || !other.IsDefault {
+				continue
+			}
+			other.IsDefault = false
+			other.UpdatedAt = time.Now()
+			if err := s.repo.UpdateKnowledgeBase(ctx, other); err != nil {
+				return nil, err
+			}
+		}
+	}
+	kb.IsDefault = isDefault
+	kb.UpdatedAt = time.Now()
+	if err := s.repo.UpdateKnowledgeBase(ctx, kb); err != nil {
+		return nil, err
+	}
+	return kb, nil
 }
 
 // TogglePinKnowledgeBase toggles whether the calling user has pinned
@@ -1501,6 +1549,7 @@ func (s *knowledgeBaseService) CopyKnowledgeBase(ctx context.Context,
 			Description:           sourceKB.Description,
 			TenantID:              tenantID,
 			ChunkingConfig:        sourceKB.ChunkingConfig,
+			TextPreprocessConfig:  sourceKB.TextPreprocessConfig,
 			ImageProcessingConfig: sourceKB.ImageProcessingConfig,
 			EmbeddingModelID:      sourceKB.EmbeddingModelID,
 			SummaryModelID:        sourceKB.SummaryModelID,

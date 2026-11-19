@@ -861,10 +861,23 @@ func (h *AuthHandler) GetAuthConfig(c *gin.Context) {
 		h.configInfo,
 		h.systemSettingSvc,
 	)
+
+	// Branding is public (login page + sidebar wordmark). Empty strings mean
+	// "use the frontend built-in default" — never invent a product name here.
+	systemName := ""
+	logo := ""
+	if h.systemSettingSvc != nil {
+		ctx := c.Request.Context()
+		systemName = h.systemSettingSvc.GetString(ctx, "branding.system_name", "WEKNORA_SYSTEM_NAME", "")
+		logo = h.systemSettingSvc.GetString(ctx, "branding.logo", "WEKNORA_SYSTEM_LOGO", "")
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success":                  true,
 		"registration_mode":        mode,
 		"complex_password_enabled": complexPasswordEnabled,
+		"system_name":              systemName,
+		"logo":                     logo,
 	})
 }
 

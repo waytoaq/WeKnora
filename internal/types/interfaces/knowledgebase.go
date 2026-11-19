@@ -86,6 +86,10 @@ type KnowledgeBaseService interface {
 	// TogglePinKnowledgeBase toggles the pin status of a knowledge base
 	TogglePinKnowledgeBase(ctx context.Context, id string) (*types.KnowledgeBase, error)
 
+	// SetDefaultKnowledgeBase marks or clears the tenant default knowledge base.
+	// When isDefault is true, any previous default in the same tenant is cleared.
+	SetDefaultKnowledgeBase(ctx context.Context, id string, isDefault bool) (*types.KnowledgeBase, error)
+
 	// HybridSearch performs hybrid search (vector + keywords) in the knowledge base
 	// Parameters:
 	//   - ctx: Context information

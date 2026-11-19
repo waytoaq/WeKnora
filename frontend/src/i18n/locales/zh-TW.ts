@@ -181,9 +181,9 @@ export default {
   automation: {
     conversationNotice: "此對話由自動化任務執行，無法手動傳送訊息。請在上方處理待審批事項。",
     title: '自動化',
-    description: '讓 WeKnora 助手按排程以你的身分執行任務，結果與待審批事項會通知你。',
+    description: '讓知识助手按排程以你的身分執行任務，結果與待審批事項會通知你。',
     add: '新增自動化',
-    addHint: '也可以直接請 WeKnora 助手幫你建立',
+    addHint: '也可以直接請知识助手幫你建立',
     paused: '已暫停',
     scheduleEnded: '已結束',
     scheduleEndedHint: '一次性排程已結束。可立即執行，或修改執行時間後恢復。',
@@ -235,7 +235,7 @@ export default {
       sections: {
         basic: {
           title: '基本資訊',
-          desc: '任務由 WeKnora 助手執行。需要其他智慧代理時，請在任務中寫明委派對象與工作。',
+          desc: '任務由知识助手執行。需要其他智慧代理時，請在任務中寫明委派對象與工作。',
         },
         schedule: {
           title: '執行時間',
@@ -807,7 +807,7 @@ export default {
   },
   integrations: {
     cli: {
-      title: 'WeKnora CLI',
+      title: '知识 CLI',
       subtitle: '在終端中管理知識庫和文件、檢索內容併發起問答，也可透過指令碼或 MCP 接入 AI 工具。',
       docs: '查看 CLI 文件',
       docsHint: '安裝說明與完整命令參考',
@@ -833,8 +833,8 @@ export default {
     filterByAgentWithName: '按智慧代理篩選：{name}',
     filterAllAgents: '全部智慧代理',
     claw: {
-      title: 'WeKnora Skill',
-      subtitle: '透過 WeKnora REST API 匯入文件並執行混合檢索（向量 + 關鍵字）。適用於上傳檔案/URL/Markdown 到知識庫、跨庫檢索與瀏覽知識內容。',
+      title: '知识 Skill',
+      subtitle: '透過知识 REST API 匯入文件並執行混合檢索（向量 + 關鍵字）。適用於上傳檔案/URL/Markdown 到知識庫、跨庫檢索與瀏覽知識內容。',
       capabilitiesTitle: 'Skill 能力',
       stepsTitle: '設定步驟',
       openApiSettings: '打開 API 資訊',
@@ -843,7 +843,7 @@ export default {
       copyCmdSuccess: '已複製安裝命令',
       ecosystemNote: 'Skill 託管於 ClawHub（{\'@\'}lyingbug/weknora），完整 API 說明與版本歷史請參見 ClawHub 頁面。',
       installCta: '前往 ClawHub',
-      installCtaHint: '安裝 WeKnora Skill · 將在新分頁打開',
+      installCtaHint: '安裝知识 Skill · 將在新分頁打開',
       hubMeta: 'ClawHub · {\'@\'}lyingbug/weknora · MIT-0',
       steps: {
         verify: {
@@ -888,7 +888,7 @@ export default {
     },
     chrome: {
       title: '知識管理助手',
-      subtitle: '配合 WeKnora 自建服務使用：在任意網頁側邊欄提問、剪藏內容、Markdown 速記，將瀏覽中的知識沉澱到你的知識庫。',
+      subtitle: '配合知识自建服務使用：在任意網頁側邊欄提問、剪藏內容、Markdown 速記，將瀏覽中的知識沉澱到你的知識庫。',
       capabilitiesTitle: '核心能力',
       stepsTitle: '設定步驟',
       openApiSettings: '打開 API 資訊',
@@ -908,7 +908,7 @@ export default {
         },
         port: {
           title: '桌面版設定固定連接埠（推薦）',
-          desc: '使用 WeKnora 桌面版時，在 API 資訊中設定固定連接埠（如 37841），避免每次啟動後地址變化導致外掛斷連。'
+          desc: '使用知识桌面版時，在 API 資訊中設定固定連接埠（如 37841），避免每次啟動後地址變化導致外掛斷連。'
         },
         api: {
           title: '獲取 API 憑證',
@@ -997,7 +997,7 @@ export default {
       capabilityMessageHistory: '訊息歷史',
       capabilityMessageHistoryHint: '允許檢索空間聊天歷史並讀取聊天歷史統計；不授予空間設定權限。',
       capabilityManageModels: '管理模型',
-      capabilityManageModelsHint: '允許管理模型設定、模型憑據、模型連通性測試和 WeKnoraCloud 憑據。',
+      capabilityManageModelsHint: '允許管理模型設定、模型憑據、模型連通性測試和知识 Cloud 憑據。',
       capabilityManageMcpServices: '管理 MCP 服務',
       capabilityManageMcpServicesHint: '允許管理 MCP 服務、憑據、工具審批策略和該主體的 OAuth 授權狀態。',
       capabilityManageDatasources: '管理資料源',
@@ -1044,14 +1044,14 @@ export default {
       directWarning: '直接傳使用者 ID 會信任呼叫方請求頭，僅適用於可信伺服器端到伺服器端呼叫。',
       directWarningDetail: '任何持有 API Key 的呼叫方都可以透過修改使用者 ID 請求頭冒充其他外部使用者，從而共用或劫持其 MCP OAuth 授權。請勿用於瀏覽器或不可信用戶端；面向終端使用者請使用「簽章 Token」。',
       signedRecommended: '推薦給面向使用者的應用：由你的業務後端為外部使用者籤發短期 HS256 JWT。',
-      signedFlowDetail: 'HMAC 金鑰僅儲存在 WeKnora 與你的可信後端，切勿放入請求或下發給瀏覽器。請求頭裡傳的是用該金鑰籤出的 JWT 字符串（每次籤發或過期後會變），不是金鑰本身。JWT 須包含 sub（外部使用者 ID）、tenant_id、aud=weknora、exp（有效期不超過 24 小時）。',
+      signedFlowDetail: 'HMAC 金鑰僅儲存在知识與你的可信後端，切勿放入請求或下發給瀏覽器。請求頭裡傳的是用該金鑰籤出的 JWT 字符串（每次籤發或過期後會變），不是金鑰本身。JWT 須包含 sub（外部使用者 ID）、tenant_id、aud=weknora、exp（有效期不超過 24 小時）。',
       directHeader: '使用者 ID 請求頭',
       requireDirectHeader: '必須攜帶使用者 ID',
       requireDirectHeaderDesc: '開啟後，缺少使用者 ID 請求頭的 API Key 請求將被拒絕；關閉則按整個空間統一處理，不區分具體終端使用者。',
       tokenHeader: 'Token 請求頭',
       tokenHeaderDesc: '用戶端在該固定請求頭中攜帶後端籤發的 JWT。',
       hmacSecret: 'HMAC 金鑰',
-      hmacSecretDesc: '與 WeKnora 儲存的同一份金鑰；僅用於後端籤發 JWT，不要作為請求頭髮送。',
+      hmacSecretDesc: '與知识儲存的同一份金鑰；僅用於後端籤發 JWT，不要作為請求頭髮送。',
       secretConfigured: '已設定金鑰（不可回看）；輸入新值可輪換',
       secretSavedCopyHint: '金鑰已儲存，請立即複製到後端設定。離開本頁後將無法再次查看。',
       generateSecret: '生成金鑰',
@@ -1224,8 +1224,10 @@ export default {
     }
   },
   datasource: {
-    title: '資料源管理',
-    description: '設定外部資料源，自動同步內容到知識庫',
+    title: '知識採集 / 資料源',
+    description: '業務知識採集與資料庫知識採集：連接外部系統或資料庫，定期同步內容到知識庫',
+    categoryBusiness: '業務知識採集',
+    categoryDatabase: '資料庫知識採集',
     add: '新增資料源',
     empty: '暫無資料源',
     edit: '編輯',
@@ -1458,7 +1460,9 @@ export default {
       rss: '同步 RSS / Atom 訂閱源中的文章',
       gitlab: '同步 GitLab 專案中的檔案',
       nextcloud: '透過 WebDAV 同步 Nextcloud 中的資料夾與檔案',
-      seafile: '同步 Seafile 資料庫中的目錄與檔案'
+      seafile: '同步 Seafile 資料庫中的目錄與檔案',
+      http_api: '透過 HTTP JSON API 同步業務系統中的知識記錄',
+      sql: '透過 SQL 定期同步 PostgreSQL / MySQL 中的結構化知識'
     },
     connector: {
       feishu: '飛書',
@@ -1473,7 +1477,51 @@ export default {
       rss: 'RSS / Atom 訂閱',
       gitlab: 'GitLab',
       nextcloud: 'Nextcloud',
-      seafile: 'Seafile'
+      seafile: 'Seafile',
+      http_api: 'HTTP API（業務系統）',
+      sql: 'SQL 資料庫'
+    },
+    httpApi: {
+      section: '介面設定',
+      baseUrl: 'API 根位址',
+      listPath: '列表介面路徑',
+      listPathHint: '相對路徑或完整 URL；支援分頁參數',
+      itemsPath: '列表欄位路徑',
+      itemsPathHint: 'JSON 中陣列所在路徑，如 data 或 data.items；根陣列可留空',
+      detailPath: '詳情介面模板（可選）',
+      authType: '認證方式',
+      authBearer: 'Bearer Token',
+      authHeader: '自訂請求頭',
+      authNone: '無認證',
+      tokenHint: 'Bearer 模式下填寫存取權杖；也可改用自訂請求頭',
+      fieldMapping: '欄位對應',
+      idField: 'ID 欄位',
+      titleField: '標題欄位',
+      contentField: '正文欄位',
+      updatedAtField: '更新時間欄位'
+    },
+    sql: {
+      section: '查詢設定',
+      driver: '資料庫類型',
+      host: '主機',
+      port: '連接埠',
+      database: '資料庫名',
+      user: '使用者名稱',
+      password: '密碼',
+      sslMode: 'SSL Mode（可選）',
+      sslModeHint: 'PostgreSQL 常用 disable / require；建議使用唯讀帳號',
+      table: '資料表（可選）',
+      tableHint: '填寫表名時將自動 SELECT *；也可改用下方自訂 SQL',
+      query: '自訂 SQL（可選）',
+      queryHint: '僅允許唯讀 SELECT / CTE；與表名二選一，優先使用 SQL',
+      queryOrTableRequired: '請填寫表名或自訂 SQL',
+      columnMapping: '欄位對應',
+      idColumn: 'ID 欄',
+      titleColumn: '標題欄',
+      contentColumns: '正文欄（逗號分隔）',
+      incrementalColumn: '增量欄（如 updated_at）',
+      contentTemplate: '正文模板（可選）',
+      contentTemplatePlaceholder: '支援 {{column}} 佔位符，例如：# {{title}}\\n\\n{{body}}'
     },
     logDetail: {
       startTime: '開始時間',
@@ -2603,7 +2651,7 @@ export default {
     },
     hostApproval: {
       titleDelete: '刪除檔案前需要你確認',
-      titleDenied: 'WeKnora 想要存取以下目錄',
+      titleDenied: '知识想要存取以下目錄',
       titleGeneric: '需要你確認',
       command: '命令',
       cwd: '目錄',
@@ -2673,8 +2721,8 @@ export default {
           desc: 'Microsoft MarkItDown 文件轉換工具（支援 PDF/Office/HTML 等）'
         },
         weknoracloud: {
-          name: 'WeKnora Cloud',
-          desc: '使用 WeKnora Cloud 進行文件解析'
+          name: '知识 Cloud',
+          desc: '使用知识 Cloud 進行文件解析'
         },
         paddleocr_vl_cloud: {
           name: 'PaddleOCR-VL Cloud',
@@ -2754,7 +2802,7 @@ export default {
     askUser: '向使用者提問'
   },
   assistant: {
-    title: 'WeKnora 助手',
+    title: '知识助手',
     newConversation: '新對話',
     history: '歷史對話',
     untitledConversation: '未命名對話',
@@ -2768,10 +2816,10 @@ export default {
     },
     welcomeTitle: '有什麼可以幫你？',
     agentWelcomeDesc: '可以檢查這個智慧代理的設定、調整模型或查看它能檢索的知識庫。',
-    welcomeDesc: '我可以解答 WeKnora 的使用問題，整理知識與文件，幫你設定智慧代理、工具和自動化。',
+    welcomeDesc: '我可以解答知识的使用問題，整理知識與文件，幫你設定智慧代理、工具和自動化。',
     help: {
       label: '助手說明',
-      title: 'WeKnora 助手能做什麼',
+      title: '知识助手能做什麼',
       identity: '助手以你的身份工作。它能看到和修改的範圍，與你在這個空間裡的角色一致，不會超出你的權限。',
       page: '打開後會附帶目前頁面，可以據此梳理內容、設定智慧代理和自動化，或代為填寫表單。它不會替你點擊按鈕或儲存。',
       access: '輸入框下方可以切換權限：唯讀、修改前確認、自動執行。刪除始終需要你確認。管理員限制的最高等級無法突破。',
@@ -2861,8 +2909,8 @@ export default {
         q3: 'Ollama 連不上時通常要檢查什麼？',
       },
       weknoracloud: {
-        description: '我可以說明 WeKnora Cloud 能提供哪些模型，以及怎樣開通和選用。',
-        q1: 'WeKnora Cloud 能提供哪些模型？',
+        description: '我可以說明知识 Cloud 能提供哪些模型，以及怎樣開通和選用。',
+        q1: '知识 Cloud 能提供哪些模型？',
         q2: '怎樣開通或繫結 Cloud 帳號？',
         q3: 'Cloud 模型和我自己接入的模型怎麼選？',
       },
@@ -2987,14 +3035,14 @@ export default {
         q3: '有沒有現成的請求範例？',
       },
       'integration-mcpserver': {
-        description: '我可以說明怎樣把 WeKnora 作為 MCP 服務提供出去，以及會暴露哪些工具。',
-        q1: '怎樣把 WeKnora 作為 MCP 服務提供出去？',
+        description: '我可以說明怎樣把知识作為 MCP 服務提供出去，以及會暴露哪些工具。',
+        q1: '怎樣把知识作為 MCP 服務提供出去？',
         q2: '外部用戶端要怎樣連線？',
         q3: '這個服務會暴露哪些工具？',
       },
       'integration-cli': {
         description: '我可以指導你安裝並登入 CLI，並列出常用的知識庫和對話命令。',
-        q1: '怎樣安裝並登入 WeKnora CLI？',
+        q1: '怎樣安裝並登入知识 CLI？',
         q2: 'CLI 能做哪些知識庫和對話操作？',
         q3: '最常用的幾條命令是什麼？',
       },
@@ -3005,8 +3053,8 @@ export default {
         q3: '擴充功能裡選取的內容會發到哪裡？',
       },
       'integration-claw': {
-        description: '我可以說明怎樣把 WeKnora 接到 Claw，以及需要安裝哪個技能。',
-        q1: '怎樣把 WeKnora 接到 Claw？',
+        description: '我可以說明怎樣把知识接到 Claw，以及需要安裝哪個技能。',
+        q1: '怎樣把知识接到 Claw？',
         q2: '需要安裝哪個技能？',
         q3: '連上之後能在 Claw 裡做什麼？',
       },
@@ -3160,7 +3208,7 @@ export default {
       documentSummary: "這篇文件有哪些關鍵結論？",
       failedDocuments: '這個知識庫有哪些解析失敗的文件？',
       recentActivity: "最近上傳或更新了哪些文件？",
-      formats: 'WeKnora 支援哪些文件格式？',
+      formats: '知识支援哪些文件格式？',
       createWiki: '怎樣建立 Wiki 知識庫？',
       agents: "這些智慧代理分別適合回答什麼問題？",
       messageSources: '這則回答的依據是什麼？',
@@ -3172,7 +3220,7 @@ export default {
       modelSetup: '我還需要設定哪些模型？',
       mcpSetup: '怎樣接入一個 MCP 服務？',
       releaseHighlights: "目前版本主要更新了哪些內容？",
-      gettingStarted: "第一次使用 WeKnora，應該先設定什麼？",
+      gettingStarted: "第一次使用知识，應該先設定什麼？",
       workflow: "知識庫、智慧代理和自動化該怎麼搭配使用？",
       knowledgeOverview: "這些知識庫分別適合查哪些內容？",
       knowledgeType: "文件、FAQ 和 Wiki，我該怎麼選？",
@@ -4733,6 +4781,10 @@ export default {
         }
       },
       keyDescriptions: {
+        branding: {
+          system_name: '系統顯示名稱。出現在側欄、登入頁與瀏覽器標題。留空則使用內建預設名稱。修改後立即生效。',
+          logo: '系統 Logo。支援上傳圖片（轉為 data URI）或填寫 http(s) 圖片地址。留空則只顯示系統名稱。建議正方形 PNG/SVG，不超過 256KB。',
+        },
         model: {
           max_concurrency: '後台任務（文件入庫/富化）對單個模型的預設併發上限，按模型 ID 全副本共享。每次呼叫實時讀取，修改後立即生效、無需重啟。0 或負數表示關閉預設限制（各模型仍會尊重自身在模型管理裡設定的上限）。僅影響後台任務，不影響交互式對話。'
         },
@@ -4764,7 +4816,19 @@ export default {
           complex_password_enabled: '是否啟用複雜密碼。開啟後密碼必須包含大小寫字母、數字和特殊字符。修改後立即生效，只影響新註冊使用者或新密碼修改/重設操作。特殊字符包含：{specialChars}'
         }
       },
+      branding: {
+        uploadLogo: '上傳 Logo',
+        clearLogo: '清除',
+        logoEmpty: '未設定',
+        invalidImageType: '請選擇圖片檔案（PNG / JPEG / WebP / GIF / SVG）',
+        logoTooLarge: 'Logo 不能超過 256KB',
+        readFailed: '讀取圖片失敗',
+      },
       keyLabels: {
+        branding: {
+          system_name: '系統名稱',
+          logo: '系統 Logo',
+        },
         model: {
           max_concurrency: '模型預設併發上限'
         },
@@ -5020,6 +5084,10 @@ export default {
         tenant: {
           title: '空間預設值',
           description: '設定新空間的初始配額與相容性行為，不會自動改寫已有空間。'
+        },
+        branding: {
+          title: '品牌與外觀',
+          description: '設定系統名稱與 Logo，會顯示在側欄、登入頁與瀏覽器標題。',
         },
         access: {
           title: '註冊與存取',
@@ -5491,8 +5559,14 @@ export default {
       description: '設定影像內容理解能力，啟用後支援圖片等非文字內容的解析和檢索'
     },
     chunking: {
-      title: '切塊設定',
-      description: '控制上傳文件在內嵌前的切分方式。預設值適用於大多數情境，僅在檢索品質例外時調整。',
+      title: '知識採集設定',
+      description: '設定文字預處理、分段規則與知識化選項。預設值適用於大多數情境，僅在檢索品質例外時調整。',
+      preprocessTitle: '文字預處理',
+      preprocessDescription: '在切塊前正規化文字：合併多餘空白、統一換行、處理定位字元等。',
+      collapseWhitespace: '合併多餘空白',
+      normalizeNewlines: '統一換行符',
+      stripTabs: '定位字元轉空白',
+      trimLines: '去除行首行尾空白',
       sizeLabel: '切塊大小',
       sizeDescription: '每個切塊的最大字符數（100-4000）。預設 512 ≈ 中文 300 tokens / 英文 100-130 tokens。FAQ 用 200-400，敘述性長文件用 1000-2000。',
       characters: '字符',
@@ -6085,21 +6159,27 @@ export default {
       basic: '基本資訊',
       models: '模型設定',
       vectorStore: '向量存儲',
-      chunking: '切塊設定',
+      chunking: '知識採集設定',
       storage: '存儲引擎',
       advanced: '進階設定',
       faq: 'FAQ 設定',
       graph: '知識圖譜',
       multimodal: '影像處理',
       asr: '音訊處理',
-      datasource: '資料源',
+      datasource: '知識採集',
       share: '共享管理',
       activity: '活動記錄'
     },
+    graphTabs: {
+      extract: '抽取設定',
+      schema: '知識定義',
+      schemaNeedSave: '請先儲存知識庫後，再設定實體 / 關係 / 屬性定義與入庫任務。',
+      openGlobal: '在全局頁管理',
+    },
     navGroups: {
       basic: '基礎',
-      processing: '索引與解析',
-      data: '存儲與資料',
+      processing: '知識採集設定',
+      data: '存儲與知識採集',
       integration: '發布集成',
       management: '管理與稽核'
     },
@@ -6119,7 +6199,7 @@ export default {
       systemActor: '系統觸發',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: '經 WeKnora 助手',
+      viaAssistant: '經知识助手',
       knowledgeBase: '知識庫',
       countItems: '共 {count} 項',
       titleWithCount: '{title} 等 {count} 項',
@@ -6282,7 +6362,7 @@ export default {
     welcomeMessageDesc: '訪客打開內嵌聊天後、尚未發言時展示；留空則不顯示',
     showSuggestedQuestions: '推薦問題',
     showSuggestedQuestionsDesc: '訪客未發言前展示快捷提問，內容來自智慧代理設定與關聯知識庫',
-    originsHint: '填寫允許內嵌的宿主網站來源（A），不是 WeKnora 地址（B）。每行一個完整 Origin，如 https://shop.example.com；至少一項，支援 *.example.com 子域通配',
+    originsHint: '填寫允許內嵌的宿主網站來源（A），不是知识地址（B）。每行一個完整 Origin，如 https://shop.example.com；至少一項，支援 *.example.com 子域通配',
     originsRequired: '請至少填寫一個域名白名單',
     originsInvalid: '域名格式無效：{origin}',
     originsWildcardProd: '生產環境不允許使用萬用字元 *',
@@ -6341,9 +6421,9 @@ export default {
     allowFileUploadDesc: '開啟後，訪客可上傳圖片與文件附件。僅當綁定的智慧代理已啟用圖片上傳時才會生效。',
     webhookUrl: 'Webhook 地址',
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
-    webhookUrlDesc: '可選。訪客發訊息與助手回覆完成時，WeKnora 會向該 HTTPS 地址 POST 事件（message_sent / message_received）。',
+    webhookUrlDesc: '可選。訪客發訊息與助手回覆完成時，知识會向該 HTTPS 地址 POST 事件（message_sent / message_received）。',
     webhookSecret: 'Webhook 簽章金鑰',
-    webhookSecretPlaceholder: '用於 HMAC-SHA256 簽章（X-WeKnora-Signature）',
+    webhookSecretPlaceholder: '用於 HMAC-SHA256 簽章（X-知识-Signature）',
     webhookSecretKeep: '留空表示不修改已儲存的金鑰',
     webhookSecretDesc: '可選。設定後請求體會帶 sha256 簽章頭，便於你的伺服器端驗證來源。',
     agentWebSearchDisabledHint: '當前智慧代理未啟用聯網搜尋，訪客端不會顯示聯網按鈕。請先在智慧代理設定中開啟聯網搜尋。',
@@ -6423,6 +6503,14 @@ export default {
       unpinSuccess: '已取消置頂',
       failed: '操作失敗'
     },
+    default: {
+      badge: '預設',
+      set: '設為預設知識庫',
+      unset: '取消預設知識庫',
+      setSuccess: '已設為預設知識庫',
+      unsetSuccess: '已取消預設知識庫',
+      failed: '設定預設知識庫失敗'
+    },
     menu: {
       viewDetails: '查看詳情',
       duplicate: '建立副本'
@@ -6444,7 +6532,7 @@ export default {
     }
   },
   createChat: {
-    title: 'Hi，我是 WeKnora，讓你的知識觸手可及',
+    title: 'Hi，我是知识，讓你的知識觸手可及',
     newSessionTitle: '新會話',
     openProject: '選擇專案',
     clearProject: '取消綁定',
@@ -6794,11 +6882,11 @@ export default {
     haveAccount: '已有帳戶？',
     backToLogin: '返回登入',
     loginHint: '登入以繼續使用；首次使用請在下方建立帳戶。',
-    firstTime: '首次使用 WeKnora？',
+    firstTime: '首次使用知识？',
     registerSuccess: '註冊成功，請登入',
     registerFailed: '註冊失敗',
     subtitle: 'RAG 問答、ReAct 智慧代理與 Wiki 知識庫，大型語言模型驅動的企業級知識框架',
-    registerSubtitle: '建立帳戶並開始使用 WeKnora',
+    registerSubtitle: '建立帳戶並開始使用知识',
     emailPlaceholder: '輸入電子信箱地址',
     passwordPlaceholder: '輸入密碼',
     confirmPasswordPlaceholder: '再次輸入密碼',
@@ -6868,6 +6956,15 @@ export default {
   initialization: {
     skip: '跳過',
     next: '下一步'
+  },
+  graphSchemaManage: {
+    title: '知識定義',
+    subtitle: '按知識庫管理實體 / 關係 / 屬性定義與表映射入庫任務，供圖譜抽取與 GraphRAG 使用。',
+    selectKb: '選擇知識庫',
+    noKb: '暫無可管理的文件型知識庫',
+    pickKbHint: '請先選擇一個知識庫',
+    openKb: '打開知識庫',
+    defaultBadge: '預設',
   },
   graphSettings: {
     title: '知識圖譜設定',
@@ -7115,7 +7212,7 @@ export default {
     title: '沙箱金鑰',
     host: {
       title: '環境變數',
-      description: '給本機技能用的個人金鑰，不是 WeKnora 的系統或部署設定。',
+      description: '給本機技能用的個人金鑰，不是知识的系統或部署設定。',
       helpAria: '環境變數說明',
       introRuntimeBody: '技能在這台電腦上運行時才會注入；對話裡也可以當場提供。儲存後不再顯示明文。',
       loadFailed: '環境變數載入失敗。',
@@ -7124,7 +7221,7 @@ export default {
       nameInvalid: '這個名字不能用。保留名（例如 PATH，或以 WEKNORA_ 開頭的名字）不接受。',
       deleteConfirm: '刪除 {name}？之後在這台電腦上運行的東西都不會再帶上它。',
     },
-    description: '給技能和沙箱用的個人金鑰，不是 WeKnora 的系統或部署設定。',
+    description: '給技能和沙箱用的個人金鑰，不是知识的系統或部署設定。',
     helpAria: '沙箱金鑰說明',
     introPersonalTitle: '只屬於你',
     introPersonalBody: '只注入到你自己的對話和執行裡，空間裡的其他人看不到，也不會改成他們的值。',
@@ -7420,7 +7517,7 @@ export default {
       dockerDisabledAlert: '當前部署未啟用 Docker 沙箱',
       dockerDisabledHint: '本機 docker.sock 等同宿主機 root。僅私有化單機需要時，由系統管理員在「設定 → 系統設定 → 網路安全」中打開。',
       dockerDisabledCard: '部署未啟用 Docker 沙箱，此設定不會再建立容器',
-      dockerHostRisk: '留空或 unix:// 會使用 WeKnora 所在機器的 Docker 守護行程，權限等同該機 root，只適合私有化單機。多套空間共用同一主機時請改用 Cube 或 E2B。遠程 tcp:// 必須填寫 TLS 證書目錄。',
+      dockerHostRisk: '留空或 unix:// 會使用知识所在機器的 Docker 守護行程，權限等同該機 root，只適合私有化單機。多套空間共用同一主機時請改用 Cube 或 E2B。遠程 tcp:// 必須填寫 TLS 證書目錄。',
       addConfig: '新增沙箱',
       viewClusterGuide: '叢集搭建指南',
       configName: '設定名稱',
@@ -7513,11 +7610,11 @@ export default {
       policySaveFailed: '更新沙箱執行策略失敗',
       legacyConfig: '已廢棄',
       namedBackendHint: '空間設定是唯一運行時來源；智慧代理沒有選擇設定時不會執行技能指令碼。',
-      weknoraTemplateTitle: 'WeKnora 標準模板',
-      weknoraDockerImage: 'WeKnora 標準映像',
+      weknoraTemplateTitle: '知识標準模板',
+      weknoraDockerImage: '知识標準映像',
       weknoraDockerImageHint: '每次會話獨佔一個長駐容器，指令碼、shell 命令與檔案都在同一個容器內，會話結束或空閒超時後回收。',
-      weknoraTemplateOverview: 'WeKnora 負責提供標準運行環境。連結叢集後會自動發現模板，缺少標準模板時自動建立。',
-      weknoraTemplateDescription: '包含 WeKnora 技能所需的 Python、Node.js、CLI 工具、工作目錄和非 root 執行使用者。',
+      weknoraTemplateOverview: '知识負責提供標準運行環境。連結叢集後會自動發現模板，缺少標準模板時自動建立。',
+      weknoraTemplateDescription: '包含知识技能所需的 Python、Node.js、CLI 工具、工作目錄和非 root 執行使用者。',
       recommendedTag: '推薦',
       templateNotConfigured: '未設定模板',
       cardTemplateConfigured: '模板已設定',
@@ -7534,7 +7631,7 @@ export default {
       templateSelectPlaceholder: '先連結叢集並載入模板',
       templateLoadHint: '填寫叢集連結後重新整理模板。沒有官方標準模板時，會從 Docker Hub 映像自動建構。桌面模板體積更大，需在下方單獨點「建立」。改 DNS 或映像後在對應卡片上點「重建」。',
       templateLoadFailed: '模板清單載入失敗',
-      standardTemplateProvisioning: '已開始在叢集中建立 WeKnora 標準模板，請稍後重新整理查看狀態',
+      standardTemplateProvisioning: '已開始在叢集中建立知识標準模板，請稍後重新整理查看狀態',
       standardTemplateReplaced: '已刪除原標準模板並開始重建，請等待狀態就緒',
       templateNotReady: '所選模板尚未建構完成，請重新整理並等待狀態就緒',
       connectionPassed: '連結驗證透過，以下模板均從當前叢集實時載入。',
@@ -7542,21 +7639,21 @@ export default {
       templateStepHint: '進入此步會列出叢集模板；若還沒有官方標準模板，會從 Docker Hub 映像自動建構。桌面模板（XFCE）體積較大，需單獨點「建立」。改 DNS 或映像後在對應卡片上點「重建」。選好並就緒後才能繼續。',
       loadingTemplates: '正在從叢集載入模板…',
       templateBuildingHint: '模板正在建構，清單會自動重新整理。',
-      templateUntaggedHint: '建構已完成，但沒有建構帶 default 標籤，建立沙箱時無法解析。請在 E2B 刪除該模板，重新整理後 WeKnora 會重新建構。',
+      templateUntaggedHint: '建構已完成，但沒有建構帶 default 標籤，建立沙箱時無法解析。請在 E2B 刪除該模板，重新整理後知识會重新建構。',
       templateFailedReason: '建構失敗：{reason}',
       noTemplates: '當前叢集未返回可用模板。',
-      weknoraStandardTemplate: 'WeKnora 標準模板',
+      weknoraStandardTemplate: '知识標準模板',
       createStandardTemplate: '建立',
       createStandardTemplateHint: '按當前連結設定建構，包含 DNS。之後改設定可在卡片上重建。',
-      weknoraDesktopTemplate: 'WeKnora 桌面模板',
+      weknoraDesktopTemplate: '知识桌面模板',
       createDesktopTemplate: '建立',
       createDesktopTemplateHint: '從官方桌面映像建構 XFCE 圖形桌面。體積明顯大於標準模板，僅在需要圖形界面時建立。',
       replaceStandardTemplate: '重建',
-      replaceStandardTemplateConfirm: '將用當前設定（含 DNS）重建 WeKnora 標準模板。新模板就緒前不會刪除仍可啟動的舊模板。',
-      desktopTemplateProvisioning: '已開始在叢集中建立 WeKnora 桌面模板，請稍後重新整理查看狀態',
+      replaceStandardTemplateConfirm: '將用當前設定（含 DNS）重建知识標準模板。新模板就緒前不會刪除仍可啟動的舊模板。',
+      desktopTemplateProvisioning: '已開始在叢集中建立知识桌面模板，請稍後重新整理查看狀態',
       desktopTemplateReplaced: '已刪除原桌面模板並開始重建，請等待狀態就緒。標準（CLI）模板不受影響。',
       desktopTemplateTag: '桌面',
-      replaceDesktopTemplateConfirm: '將用當前設定（含 DNS）重建 WeKnora 桌面模板。新模板就緒前不會刪除仍可啟動的舊桌面模板，也不會刪除標準（CLI）模板。',
+      replaceDesktopTemplateConfirm: '將用當前設定（含 DNS）重建知识桌面模板。新模板就緒前不會刪除仍可啟動的舊桌面模板，也不會刪除標準（CLI）模板。',
       templateLockedBySkills: '該沙箱已安裝 Skill，技能環境綁在當前快照上，不能更換或重建運行模板。請新建一份沙箱，從新模板再裝 Skill。',
       templateLockedByInFlight: '該沙箱正在安裝或移除 Skill，完成前不能更換或重建運行模板。',
       templateUnnamed: '未命名模板',
@@ -7586,7 +7683,7 @@ export default {
       cubeApiKeyOptional: '可留空 ── 自建 CubeSandbox 通常無鑑權',
       cubeApiKeyWhere: '自建叢集如何開啟鑑權',
       cubeDnsServers: 'DNS 伺服器',
-      cubeDnsServersHelp: '可選。寫入 WeKnora 標準模板的 nameserver（須為 IP）。留空則使用叢集預設（常見 119.29.29.29）。私網或雲上 UDP 53 出不去時，填 Cube 宿主機 /etc/resolv.conf 裡能用的地址，並避開 10/8、172.16/12、192.168/16。已有標準模板需在模板卡片上點「重建」才會生效。',
+      cubeDnsServersHelp: '可選。寫入知识標準模板的 nameserver（須為 IP）。留空則使用叢集預設（常見 119.29.29.29）。私網或雲上 UDP 53 出不去時，填 Cube 宿主機 /etc/resolv.conf 裡能用的地址，並避開 10/8、172.16/12、192.168/16。已有標準模板需在模板卡片上點「重建」才會生效。',
       cubeDnsServersPlaceholder: '例如 8.8.8.8，Enter新增',
       e2bApiKeyHelp: '在 E2B 控制台的 API Keys 頁面建立，通常以 e2b_ 開頭。',
       e2bApiKeyWhere: '前往 E2B 控制台獲取 API Key',
@@ -7616,9 +7713,9 @@ export default {
       dockerHost: 'Docker 守護行程地址',
       dockerHostHelp: '留空跟隨本機 docker CLI（DOCKER_HOST 或當前 docker context），不必手填 /var/run/docker.sock。遠程守護行程填 tcp://host:2376，必須同時填寫 TLS 證書目錄，私網地址還要開啟「允許存取私網地址」。',
       dockerTlsCertPath: 'TLS 證書目錄',
-      dockerTlsCertPathHelp: 'WeKnora 所在主機上包含 ca.pem、cert.pem、key.pem 的目錄。遠程守護行程必填，證書不入庫，由部署方掛載。',
+      dockerTlsCertPathHelp: '知识所在主機上包含 ca.pem、cert.pem、key.pem 的目錄。遠程守護行程必填，證書不入庫，由部署方掛載。',
       dockerIdleTtl: '空閒回收（秒）',
-      dockerIdleTtlHelp: 'Docker 守護行程本身沒有空閒超時。容器多久沒有執行任何命令就會被 WeKnora 回收，會話繼續時重建。留空按 1800 秒。',
+      dockerIdleTtlHelp: 'Docker 守護行程本身沒有空閒超時。容器多久沒有執行任何命令就會被知识回收，會話繼續時重建。留空按 1800 秒。',
       dockerCpuLimit: 'CPU 核數上限',
       dockerCpuLimitHelp: '單個沙箱可用的 CPU 核數，0 使用內建預設。',
       dockerMemoryLimit: '記憶體上限（MB）',
@@ -8093,47 +8190,47 @@ export default {
       paddleocrVlCloudTokenPlaceholder: 'PaddleOCR-VL 飛槳星河社區 Token'
     },
     weknoraCloud: {
-      title: 'WeKnora Cloud',
-      description: '設定 WeKnora Cloud 的 APPID 和 APPSECRET 憑證。憑證用於模型服務和文件解析引擎。',
+      title: '知识 Cloud',
+      description: '設定知识 Cloud 的 APPID 和 APPSECRET 憑證。憑證用於模型服務和文件解析引擎。',
       viewDocs: '查看文件',
       unconfigured: '尚未設定憑證，請填寫 APPID 和 APPSECRET',
       configured: '憑證已設定，狀態正常',
-      expired: 'WeKnora Cloud 憑證已失效',
+      expired: '知识 Cloud 憑證已失效',
       expiredDefault: '服務重啟後加密金鑰已變更，已儲存的憑證無法解密。請重新填寫憑證。',
       reconfigure: '重新設定',
       appIdLabel: 'APPID',
-      appIdDesc: 'WeKnora Cloud 的應用 ID',
+      appIdDesc: '知识 Cloud 的應用 ID',
       appIdPlaceholder: '請輸入 APPID',
       appSecretLabel: 'APPSECRET',
-      appSecretDesc: 'WeKnora Cloud 的應用金鑰',
+      appSecretDesc: '知识 Cloud 的應用金鑰',
       appSecretPlaceholder: '請輸入 APPSECRET',
       saveHint: '儲存後將驗證服務可達性並加密存儲憑證',
       saveBtn: '儲存憑證',
       usageTitle: '使用說明',
-      usageSteps: '1. 填寫並儲存 APPID / APPSECRET\n2. 在下方「雲模型接入」中按行新增 chat、embedding、rerank、vlm\n3. 文件解析：知識庫設定 → 解析引擎，選擇 WeKnora Cloud 引擎',
+      usageSteps: '1. 填寫並儲存 APPID / APPSECRET\n2. 在下方「雲模型接入」中按行新增 chat、embedding、rerank、vlm\n3. 文件解析：知識庫設定 → 解析引擎，選擇知识 Cloud 引擎',
       fillRequired: '請填寫 APPID 和 APPSECRET',
       saveSuccess: '憑證已儲存',
       saveFailed: '憑證儲存失敗',
-      credentialConfigured: 'WeKnoraCloud 憑證已設定',
+      credentialConfigured: '知识 Cloud 憑證已設定',
       credentialExpired: '憑證已失效，請重新設定。',
-      credentialUnconfigured: '尚未設定 WeKnoraCloud 憑證，請先填寫 APPID 和 APPSECRET。',
+      credentialUnconfigured: '尚未設定知识 Cloud 憑證，請先填寫 APPID 和 APPSECRET。',
       checkingStatus: '正在檢查憑證狀態...',
       goToSettings: '前往設定中設定',
-      modelHintConfigured: 'WeKnoraCloud 憑證已設定。支援的模型可參考',
+      modelHintConfigured: '知识 Cloud 憑證已設定。支援的模型可參考',
       modelHintDocsLink: '介面文件',
       addModelsSuccess: '已成功新增 {count} 個模型',
       addModelsPartial: '已新增 {success} 個，{failed} 個失敗',
       addModelsFailed: '新增模型失敗',
       addModelsEmbeddingFailed: 'Embedding 模型連結測試失敗，無法獲取向量維度',
       addModelsDisplayName: {
-        chat: 'WeKnoraCloud 對話',
-        embedding: 'WeKnoraCloud Embedding',
-        rerank: 'WeKnoraCloud ReRank',
-        vllm: 'WeKnoraCloud 視覺'
+        chat: '知识 Cloud 對話',
+        embedding: '知识 Cloud Embedding',
+        rerank: '知识 Cloud ReRank',
+        vllm: '知识 Cloud 視覺'
       },
       modelsSection: {
         title: '雲模型接入',
-        descReady: '將 WeKnora Cloud 提供的四類標準模型註冊到當前空間，用於對話、向量檢索、重排序與多模態理解。',
+        descReady: '將知识 Cloud 提供的四類標準模型註冊到當前空間，用於對話、向量檢索、重排序與多模態理解。',
         descPending: '請先儲存上方憑證，再在此新增雲模型。',
         statusAdded: '已新增',
         statusPending: '待設定憑證',
@@ -9241,8 +9338,8 @@ export default {
     reopen: '新手引導',
     steps: {
       assistant: {
-        title: '認識 WeKnora 助手',
-        desc: '可以詢問 WeKnora 的版本、功能與設定，也可以結合目前頁面，以你的身分建立智慧代理、設定定時任務或整理知識。'
+        title: '認識知识助手',
+        desc: '可以詢問知识的版本、功能與設定，也可以結合目前頁面，以你的身分建立智慧代理、設定定時任務或整理知識。'
       },
       done: {
         title: '一切就緒',
@@ -9266,10 +9363,10 @@ export default {
       },
       knowledge: {
         title: '建立你的知識庫',
-        desc: '知識庫是一切的起點：上傳文件、網頁或 FAQ，WeKnora 會自動解析並建立索引。點擊這裡進入知識庫。'
+        desc: '知識庫是一切的起點：上傳文件、網頁或 FAQ，知识會自動解析並建立索引。點擊這裡進入知識庫。'
       },
       welcome: {
-        title: '歡迎使用 WeKnora',
+        title: '歡迎使用知识',
         desc: '只需幾步，帶你快速了解知識庫、對話與智慧代理的核心用法。點擊「下一步」開始。'
       }
     }
@@ -9366,6 +9463,7 @@ export default {
     sessionInProgress: '會話進行中',
     sessionUnread: '有新回覆',
     knowledgeBase: '知識庫',
+    graphSchema: '知識定義',
     agents: '智慧代理',
     automations: '自動化',
     artifacts: '產物',

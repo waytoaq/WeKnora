@@ -179,11 +179,6 @@ _wait_odl_hybrid_ready() {
 # 启动基础设施服务
 start_services() {
     log_info "启动开发环境基础设施服务..."
-    
-    check_docker
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
 
     cd "$PROJECT_ROOT"
     
@@ -199,11 +194,17 @@ start_services() {
         return 1
     fi
 
+    # 远程基础设施模式不需要本机 Docker / Compose
     if [ -n "${DEV_REMOTE_HOST:-}" ]; then
         log_warning "已配置 DEV_REMOTE_HOST=${DEV_REMOTE_HOST}，跳过本地 Docker 基础设施启动"
         log_info "远程服务: PostgreSQL/Redis/DocReader/Langfuse → ${DEV_REMOTE_HOST}"
         log_info "接下来: make dev-app（本地后端）或 make dev-frontend（前端）"
         return 0
+    fi
+
+    check_docker
+    if [ $? -ne 0 ]; then
+        return 1
     fi
     
     # 解析 profile 参数

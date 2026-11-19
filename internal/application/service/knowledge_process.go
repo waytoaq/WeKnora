@@ -4318,6 +4318,12 @@ func (s *knowledgeService) ProcessDocument(ctx context.Context, t *asynq.Task) e
 	// unbound extracted image renders broken for org-shared KB viewers (#3342).
 	s.bindStoredImages(ctx, knowledge, storedImages)
 
+	if convertResult != nil {
+		convertResult.MarkdownContent = common.ApplyTextPreprocess(
+			convertResult.MarkdownContent, kb.TextPreprocessConfig,
+		)
+	}
+
 	var sourceIndex *sourceloc.Index
 	if convertResult != nil {
 		sourceIndex = buildSourceIndex(parsedMarkdown, sourceBlocks, convertResult.MarkdownContent, storedImages)

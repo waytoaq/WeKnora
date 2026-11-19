@@ -19,6 +19,9 @@ type GraphNode struct {
 	Name       string   `json:"name,omitempty"`
 	Chunks     []string `json:"chunks,omitempty"`
 	Attributes []string `json:"attributes,omitempty"`
+	// Schema-aligned type metadata written to Neo4j (optional; old data omits these).
+	EntityCode     string `json:"entity_code,omitempty"`
+	EntityCategory string `json:"entity_category,omitempty"`
 	// Retrieval identities are local to the graph query, not extraction configuration.
 	ID          string `json:"-" yaml:"-"`
 	KnowledgeID string `json:"-" yaml:"-"`
@@ -29,6 +32,8 @@ type GraphRelation struct {
 	Node1 string `json:"node1,omitempty"`
 	Node2 string `json:"node2,omitempty"`
 	Type  string `json:"type,omitempty"`
+	// Schema-aligned relation code written to Neo4j (optional).
+	RelationCode string `json:"relation_code,omitempty"`
 	// Names are for display; these identities link to the actual document instances.
 	ID       string `json:"-" yaml:"-"`
 	SourceID string `json:"-" yaml:"-"`

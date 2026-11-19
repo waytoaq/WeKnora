@@ -779,6 +779,71 @@ func pickUserDisplayName(u *types.User) string {
 	return u.Email
 }
 
+// SetDefaultKnowledgeBaseRequest is the body of PUT /knowledge-bases/{id}/default.
+type SetDefaultKnowledgeBaseRequest struct {
+	IsDefault *bool `json:"is_default"`
+}
+
+// SetDefaultKnowledgeBase godoc
+// @Summary      设置/取消默认知识库
+// @Description  将当前知识库设为租户默认知识库，或取消默认。同一租户最多一个默认知识库。
+// @Tags         知识库
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                         true  "知识库ID"
+// @Param        request  body      SetDefaultKnowledgeBaseRequest false "是否设为默认；省略则切换"
+// @Success      200      {object}  handler.DataResponse{data=handler.KnowledgeBaseView}  "更新后的知识库"
+// @Failure      400      {object}  errors.AppError
+// @Failure      404      {object}  errors.AppError
+// @Security     Bearer
+// @Security     ApiKeyAuth
+// @Router       /knowledge-bases/{id}/default [put]
+func (h *KnowledgeBaseHandler) SetDefaultKnowledgeBase(c *gin.Context) {
+	ctx := c.Request.Context()
+	id := c.Param("id")
+	if id == "" {
+		c.Error(apperrors.NewBadRequestError("knowledge base ID is required"))
+		return
+	}
+
+	var req SetDefaultKnowledgeBaseRequest
+	_ = c.ShouldBindJSON(&req)
+
+	isDefault := true
+	if req.IsDefault != nil {
+		isDefault = *req.IsDefault
+	} else {
+		// Toggle when body omitted: look up current value.
+		existing, err := h.service.GetKnowledgeBaseByID(ctx, id)
+		if err != nil {
+			if stderrors.Is(err, repository.ErrKnowledgeBaseNotFound) {
+				c.Error(apperrors.NewNotFoundError("knowledge base not found"))
+				return
+			}
+			c.Error(apperrors.NewInternalServerError(err.Error()))
+			return
+		}
+		isDefault = !existing.IsDefault
+	}
+
+	kb, err := h.service.SetDefaultKnowledgeBase(ctx, id, isDefault)
+	if err != nil {
+		if stderrors.Is(err, repository.ErrKnowledgeBaseNotFound) {
+			c.Error(apperrors.NewNotFoundError("knowledge base not found"))
+			return
+		}
+		logger.ErrorWithFields(ctx, err, nil)
+		c.Error(apperrors.NewBadRequestError(err.Error()))
+		return
+	}
+
+	callerTenantID := c.GetUint64(types.TenantIDContextKey.String())
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    buildKBResponse(kb, h.resolveKBStoreView(ctx, kb, callerTenantID), nil),
+	})
+}
+
 // TogglePinKnowledgeBase godoc
 // @Summary      置顶/取消置顶知识库
 // @Description  切换知识库的置顶状态

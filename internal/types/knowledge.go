@@ -39,6 +39,8 @@ const (
 	ChannelIMA              = "ima"               // Tencent IMA (ima.qq.com)
 	ChannelSeafile          = "seafile"           // Seafile
 	ChannelNextcloud        = "nextcloud"         // Nextcloud
+	ChannelHTTPAPI          = "http_api"          // Generic HTTP API business source
+	ChannelSQL              = "sql"               // Relational database ETL source
 )
 
 // Knowledge parse status constants

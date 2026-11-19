@@ -255,6 +255,8 @@ func RegisterKnowledgeBaseRoutes(r *gin.RouterGroup, handler *handler.KnowledgeB
 		// removed accordingly. The route still requires KB read access
 		// so callers can't poke at KBs they can't see.
 		kb.PUT("/:id/pin", g.Viewer(), g.KBAccessRead("id"), handler.TogglePinKnowledgeBase)
+		// 默认知识库是租户级设置：需 KB 写权限（创建者或 Admin+ / 共享 editor）。
+		kbManagement.PUT("/:id/default", g.OwnedKBOrAdmin(), g.KBAccessWrite("id"), handler.SetDefaultKnowledgeBase)
 		// 混合搜索 — Viewer+ 且对 KB 有 read 权限 (read-only)
 		// POST is preferred; GET with JSON body is kept for backward compatibility (#1727).
 		kb.POST("/:id/hybrid-search", g.Viewer(), g.KBAccessRead("id"), handler.HybridSearch)

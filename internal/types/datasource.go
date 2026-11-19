@@ -44,6 +44,12 @@ const (
 	ConnectorTypeIMA         = "ima"
 	ConnectorTypeSeafile     = "seafile"
 	ConnectorTypeNextcloud   = "nextcloud"
+	// ConnectorTypeHTTPAPI syncs records from a configurable HTTP list/detail API
+	// (business-system knowledge collection).
+	ConnectorTypeHTTPAPI = "http_api"
+	// ConnectorTypeSQL syncs rows from PostgreSQL/MySQL via a read-only query
+	// (database knowledge collection).
+	ConnectorTypeSQL = "sql"
 
 	// Sync modes
 	SyncModeIncremental = "incremental"

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Tencent/WeKnora/internal/common"
 	werrors "github.com/Tencent/WeKnora/internal/errors"
 	"github.com/Tencent/WeKnora/internal/infrastructure/chunker"
 	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
@@ -1440,6 +1441,7 @@ func (s *knowledgeService) triggerManualProcessing(ctx context.Context,
 	// file-processing path: parser/OCR output may embed raw <table> blocks that
 	// the chunker cannot split. Fenced code examples are left untouched.
 	clean = docparser.NormalizeHTMLTables(clean)
+	clean = common.ApplyTextPreprocess(clean, kb.TextPreprocessConfig)
 
 	// Manual content is markdown - chunk directly with Go chunker
 	chunkCfg := buildSplitterConfigFromChunking(eff.ChunkingConfig)

@@ -70,11 +70,13 @@ import (
 	"github.com/Tencent/WeKnora/internal/datasource/connector/feishu/drive"
 	"github.com/Tencent/WeKnora/internal/datasource/connector/feishu/wiki"
 	gitlabConnector "github.com/Tencent/WeKnora/internal/datasource/connector/gitlab"
+	httpapiConnector "github.com/Tencent/WeKnora/internal/datasource/connector/httpapi"
 	imaConnector "github.com/Tencent/WeKnora/internal/datasource/connector/ima"
 	nextcloudConnector "github.com/Tencent/WeKnora/internal/datasource/connector/nextcloud"
 	notionConnector "github.com/Tencent/WeKnora/internal/datasource/connector/notion"
 	rssConnector "github.com/Tencent/WeKnora/internal/datasource/connector/rss"
 	seafileConnector "github.com/Tencent/WeKnora/internal/datasource/connector/seafile"
+	sqlConnector "github.com/Tencent/WeKnora/internal/datasource/connector/sqlconn"
 	yuqueConnector "github.com/Tencent/WeKnora/internal/datasource/connector/yuque"
 	"github.com/Tencent/WeKnora/internal/event"
 	"github.com/Tencent/WeKnora/internal/handler"
@@ -174,6 +176,7 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(repository.NewKnowledgeSpanRepository))
 	must(container.Provide(repository.NewChunkRepository))
 	must(container.Provide(repository.NewKnowledgeTagRepository))
+	must(container.Provide(repository.NewGraphSchemaRepository))
 	must(container.Provide(repository.NewSessionRepository))
 	must(container.Provide(repository.NewMessageRepository))
 	must(container.Provide(repository.NewMessageSuggestionRepository))
@@ -276,6 +279,7 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(service.NewSpanTracker))
 	must(container.Provide(service.NewChunkService))
 	must(container.Provide(service.NewKnowledgeTagService))
+	must(container.Provide(service.NewGraphSchemaService))
 	must(container.Provide(embedding.NewBatchEmbedder))
 	must(container.Provide(service.NewModelService))
 	must(container.Provide(service.NewDatasetService))
@@ -691,6 +695,7 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(handler.NewAuditLogHandler))
 	must(container.Provide(handler.NewKnowledgeBaseHandler))
 	must(container.Provide(handler.NewGraphSearchHandler))
+	must(container.Provide(handler.NewGraphSchemaHandler))
 	must(container.Provide(handler.NewKnowledgeHandler))
 	must(container.Provide(handler.NewChunkHandler))
 	must(container.Provide(handler.NewFAQHandler))
@@ -2144,6 +2149,12 @@ func initConnectorRegistry() (*datasource.ConnectorRegistry, error) {
 	}
 	if err := registry.Register(nextcloudConnector.NewConnector()); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("register nextcloud connector: %w", err))
+	}
+	if err := registry.Register(httpapiConnector.NewConnector()); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("register http_api connector: %w", err))
+	}
+	if err := registry.Register(sqlConnector.NewConnector()); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("register sql connector: %w", err))
 	}
 
 	// Future connectors will be registered here:

@@ -339,7 +339,9 @@
         <KBChunkingSettings
           v-if="formData"
           :config="formData.chunkingConfig"
+          :preprocess="formData.textPreprocessConfig"
           @update:config="handleChunkingConfigUpdate"
+          @update:preprocess="handleTextPreprocessUpdate"
         />
       </div>
 
@@ -537,15 +539,32 @@
         </div>
       </div>
 
-      <!-- 知识图谱 -->
+      <!-- 知识图谱（抽取配置 + 知识定义） -->
       <div v-if="!isFAQ && currentSection === 'graph'" class="section">
-        <GraphSettings
-          v-if="formData"
-          :graph-extract="formData.nodeExtractConfig"
-          :model-id="formData.modelConfig.llmModelId"
-          :all-models="allModels"
-          @update:graphExtract="handleNodeExtractUpdate"
-        />
+        <t-tabs v-model="graphSectionTab" class="graph-section-tabs">
+          <t-tab-panel value="extract" :label="$t('knowledgeEditor.graphTabs.extract')">
+            <GraphSettings
+              v-if="formData"
+              :graph-extract="formData.nodeExtractConfig"
+              :model-id="formData.modelConfig.llmModelId"
+              :all-models="allModels"
+              @update:graphExtract="handleNodeExtractUpdate"
+            />
+          </t-tab-panel>
+          <t-tab-panel value="schema" :label="$t('knowledgeEditor.graphTabs.schema')">
+            <div v-if="editorMode === 'edit' && activeKbId" class="graph-schema-tab">
+              <div class="graph-schema-tab__actions">
+                <t-link theme="primary" hover="color" @click="openGlobalGraphSchema">
+                  {{ $t('knowledgeEditor.graphTabs.openGlobal') }}
+                </t-link>
+              </div>
+              <GraphSchemaSettings :kb-id="activeKbId" />
+            </div>
+            <div v-else class="graph-schema-need-save">
+              <p>{{ $t('knowledgeEditor.graphTabs.schemaNeedSave') }}</p>
+            </div>
+          </t-tab-panel>
+        </t-tabs>
       </div>
 
       <!-- 高级设置 -->
@@ -617,6 +636,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import KbCreateContextualGuide from '@/components/KbCreateContextualGuide.vue'
 import { KB_EDITOR_FOCUS_SECTION_EVENT, markContextualGuideDone } from '@/config/contextualGuides'
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next'
@@ -672,6 +692,7 @@ import KBVectorStoreSettings from './settings/KBVectorStoreSettings.vue'
 import KBAdvancedSettings from './settings/KBAdvancedSettings.vue'
 import ModelSelector from '@/components/ModelSelector.vue'
 import GraphSettings from './settings/GraphSettings.vue'
+import GraphSchemaSettings from './settings/GraphSchemaSettings.vue'
 import KBShareSettings from './settings/KBShareSettings.vue'
 import DataSourceSettings from './settings/DataSourceSettings.vue'
 import KnowledgeBaseActivitySettings from './settings/KnowledgeBaseActivitySettings.vue'
@@ -683,6 +704,7 @@ const uiStore = useUIStore()
 const authStore = useAuthStore()
 const chatResources = useChatResourcesStore()
 const editorResources = useEditorResourcesStore()
+const router = useRouter()
 const { t, te } = useI18n()
 
 // The attribute panel and the OCR conditions are both rendered from the
@@ -725,17 +747,31 @@ const saveButtonLabel = computed(() =>
     : t('knowledgeEditor.buttons.saveAndClose')
 )
 
+const openGlobalGraphSchema = () => {
+  const kbId = activeKbId.value
+  uiStore.closeKBEditor()
+  router.push({
+    path: '/platform/graph-schema',
+    query: kbId ? { kbId } : {},
+  })
+}
+
 const copyKbId = async () => {
   await copyWithToast(activeKbId.value, 'common.copied')
 }
 
 const currentSection = ref<string>('basic')
+const graphSectionTab = ref<'extract' | 'schema'>('extract')
 
 const onKbEditorFocusSection = (event: Event) => {
   const section = (event as CustomEvent<{ section?: string }>).detail?.section
-  if (section) {
-    currentSection.value = section
+  if (!section) return
+  if (section === 'graphSchema') {
+    currentSection.value = 'graph'
+    graphSectionTab.value = 'schema'
+    return
   }
+  currentSection.value = section
 }
 
 onMounted(() => {
@@ -983,6 +1019,12 @@ const initFormData = (type: 'document' | 'faq' = 'document') => {
       languages: [] as string[],
       tableMetadataInstructions: ''
     },
+    textPreprocessConfig: {
+      collapseWhitespace: false,
+      normalizeNewlines: false,
+      stripTabs: false,
+      trimLines: false,
+    },
     storageBackendId: '' as string,
     storageProvider: '' as string,
     multimodalConfig: {
@@ -1148,6 +1190,12 @@ const loadKBData = async (
         tokenLimit: kb.chunking_config?.token_limit || 0,
         languages: kb.chunking_config?.languages || [],
         tableMetadataInstructions: kb.chunking_config?.table_metadata_instructions || ''
+      },
+      textPreprocessConfig: {
+        collapseWhitespace: !!kb.text_preprocess_config?.collapse_whitespace,
+        normalizeNewlines: !!kb.text_preprocess_config?.normalize_newlines,
+        stripTabs: !!kb.text_preprocess_config?.strip_tabs,
+        trimLines: !!kb.text_preprocess_config?.trim_lines,
       },
       storageBackendId: (kb.storage_backend_id || '') as string,
       storageProvider: (kb.storage_provider_config?.provider || kb.storage_config?.provider || 'local') as string,
@@ -1325,6 +1373,17 @@ const handleChunkingConfigUpdate = (config: any) => {
     formData.value.chunkingConfig = { ...config }
     // 用户已经手动触达分块设置，后续索引策略切换不再覆盖这些值
     chunkingDirty.value = true
+  }
+}
+
+const handleTextPreprocessUpdate = (config: {
+  collapseWhitespace: boolean
+  normalizeNewlines: boolean
+  stripTabs: boolean
+  trimLines: boolean
+}) => {
+  if (formData.value) {
+    formData.value.textPreprocessConfig = { ...config }
   }
 }
 
@@ -1573,6 +1632,12 @@ const buildSubmitData = () => {
         ? { parser_engine_rules: formData.value.chunkingConfig.parserEngineRules }
         : {})
     },
+    text_preprocess_config: {
+      collapse_whitespace: !!formData.value.textPreprocessConfig?.collapseWhitespace,
+      normalize_newlines: !!formData.value.textPreprocessConfig?.normalizeNewlines,
+      strip_tabs: !!formData.value.textPreprocessConfig?.stripTabs,
+      trim_lines: !!formData.value.textPreprocessConfig?.trimLines,
+    },
     embedding_model_id: formData.value.modelConfig.embeddingModelId,
     summary_model_id: formData.value.modelConfig.llmModelId
   }
@@ -1811,6 +1876,9 @@ const doSubmit = async () => {
       // 编辑器里对图片分类的修改被静默丢弃（新建时能存、之后再改无效）。
       if (data.image_processing_config) {
         updateConfig.image_processing_config = data.image_processing_config
+      }
+      if (data.text_preprocess_config) {
+        updateConfig.text_preprocess_config = data.text_preprocess_config
       }
       await updateKnowledgeBase(kbId, {
         name: data.name,
@@ -2170,6 +2238,25 @@ watch(() => chatResources.allModels, (list) => {
   flex: 1;
   overflow-y: auto;
   padding: 24px 32px;
+}
+
+.graph-section-tabs {
+  :deep(.t-tabs__content) {
+    padding-top: 12px;
+  }
+}
+
+.graph-schema-need-save {
+  padding: 24px 8px;
+  color: var(--td-text-color-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.graph-schema-tab__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
 }
 
 .section {

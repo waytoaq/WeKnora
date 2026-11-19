@@ -55,6 +55,21 @@ func (kb *KnowledgeBase) IsGraphEnabled() bool {
 - `POST /initialization/extract/text-relation`（`ExtractTextRelations`）：对一段文本（≤5000 字符）按选定标签试跑关系抽取，用于预览效果；
 - `POST /initialization/extract/fabri-text` / `fabri-tag`（`FabriText` / `FabriTag`）：让 LLM 生成示例文本 / 推荐标签，帮助用户快速搭建 `ExtractConfig`。
 
+### 知识定义（实体 / 关系 / 属性 schema）
+
+在 few-shot `ExtractConfig` 之外，知识库可维护结构化「知识定义」：
+
+| 资源 | 表 | 作用 |
+|------|----|------|
+| 属性定义 | `kb_graph_attributes` | 分类、代码、值类型（enum/single/free）、是否标签等 |
+| 实体定义 | `kb_graph_entities` | 人/事/地/物/组织分类、代码、标识键，关联多个属性 |
+| 关系定义 | `kb_graph_relations` | 本端/对端实体、代码，关联属性 |
+| 入库任务 | `kb_graph_ingest_tasks` | 表映射入库（entity/relation/attribute），状态流转 pending→running→succeeded/failed/cancelled |
+
+API 前缀：`/knowledge-bases/:id/graph-schema/{attributes,entities,relations,tasks}`（读写权限对齐知识库编辑）。
+
+**与抽取的关系**：chunk 抽取组装提示时，若本 KB 存在 schema，会把允许的实体类型 / 关系类型（对齐 `tags`）/ 属性名编译进 `custom_instructions`，并与手工 `ExtractConfig` 合并；关系名称优先进入 tags，减少两套配置漂移。表映射任务（`graph:schema_ingest`）按列映射生成 `GraphData` 写入 Neo4j，节点可带 `entity_code` / `entity_category`，关系可带 `relation_code`（旧数据无这些字段仍可按 name 合并）。
+
 ## 实体关系抽取流程（构建）
 
 ### 触发与任务编排

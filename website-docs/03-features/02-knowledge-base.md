@@ -178,6 +178,17 @@ graph TB
 | `languages` | []string | 自动检测 | 语言提示 |
 | `table_metadata_instructions` | string | - | 表格元数据生成指令 |
 
+#### TextPreprocessConfig（文本预处理）
+
+知识库级「知识采集配置」中的预处理规则，在分块前作用于解析后的纯文本 / Markdown：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `collapse_whitespace` | bool | false | 合并连续空格 |
+| `normalize_newlines` | bool | false | 统一换行并压缩多余空行 |
+| `strip_tabs` | bool | false | 制表符转为空格 |
+| `trim_lines` | bool | false | 去除每行首尾空白 |
+
 #### IndexingStrategy（索引管线开关） {#_1-4-indexingstrategy-索引管线开关}
 
 | 字段 | 默认 | 说明 |

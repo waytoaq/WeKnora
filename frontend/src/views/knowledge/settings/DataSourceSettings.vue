@@ -138,6 +138,11 @@ function statusLabel(status: string) {
 // ships several) rendered as "datasource.connector.github".
 const { connectorLabel } = useConnectorLabel()
 
+function collectionCategory(type: string) {
+  if (type === 'sql') return t('datasource.categoryDatabase')
+  return t('datasource.categoryBusiness')
+}
+
 function syncModeLabel(mode: string) {
   return t(`datasource.syncMode.${mode}`)
 }
@@ -281,6 +286,8 @@ onBeforeUnmount(stopPolling)
               </div>
             </div>
             <p class="ds-card__subtitle">
+              <span class="ds-card__category">{{ collectionCategory(ds.type) }}</span>
+              <span class="ds-card__sep">·</span>
               {{ connectorLabel(ds.type) }} · {{ syncModeLabel(ds.sync_mode) }}
               <span class="ds-card__sep">·</span>
               <span class="ds-card__status" :class="`ds-card__status--${ds.status}`">

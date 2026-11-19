@@ -8,6 +8,28 @@
     </div>
 
     <div class="settings-group">
+      <!-- Text preprocessing -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>{{ $t('knowledgeEditor.chunking.preprocessTitle') }}</label>
+          <p class="desc">{{ $t('knowledgeEditor.chunking.preprocessDescription') }}</p>
+        </div>
+        <div class="setting-control preprocess-switches">
+          <t-checkbox v-model="localCollapseWhitespace" @change="emitPreprocess">
+            {{ $t('knowledgeEditor.chunking.collapseWhitespace') }}
+          </t-checkbox>
+          <t-checkbox v-model="localNormalizeNewlines" @change="emitPreprocess">
+            {{ $t('knowledgeEditor.chunking.normalizeNewlines') }}
+          </t-checkbox>
+          <t-checkbox v-model="localStripTabs" @change="emitPreprocess">
+            {{ $t('knowledgeEditor.chunking.stripTabs') }}
+          </t-checkbox>
+          <t-checkbox v-model="localTrimLines" @change="emitPreprocess">
+            {{ $t('knowledgeEditor.chunking.trimLines') }}
+          </t-checkbox>
+        </div>
+      </div>
+
       <!-- Strategy -->
       <div class="setting-row">
         <div class="setting-info">
@@ -253,13 +275,27 @@ interface ChunkingConfig {
   languages?: string[]
 }
 
+interface TextPreprocessConfig {
+  collapseWhitespace: boolean
+  normalizeNewlines: boolean
+  stripTabs: boolean
+  trimLines: boolean
+}
+
 interface Props {
   config: ChunkingConfig
+  preprocess?: TextPreprocessConfig
   embedded?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedded: false,
+  preprocess: () => ({
+    collapseWhitespace: false,
+    normalizeNewlines: false,
+    stripTabs: false,
+    trimLines: false,
+  }),
 })
 
 const selectStyle = computed(() => (props.embedded ? { width: '100%' } : { width: '280px' }))
@@ -272,6 +308,7 @@ const childChunkSizeMarks = { 64: '64', 384: '384', 1024: '1024', 2048: '2048' }
 
 const emit = defineEmits<{
   'update:config': [value: ChunkingConfig]
+  'update:preprocess': [value: TextPreprocessConfig]
 }>()
 
 const { t } = useI18n()
@@ -285,7 +322,20 @@ const localChildChunkSize = ref(props.config.childChunkSize || 384)
 const localStrategy = ref(props.config.strategy ?? '')
 const localTokenLimit = ref(props.config.tokenLimit ?? 0)
 const localLanguages = ref<string[]>([...(props.config.languages ?? [])])
+const localCollapseWhitespace = ref(props.preprocess?.collapseWhitespace ?? false)
+const localNormalizeNewlines = ref(props.preprocess?.normalizeNewlines ?? false)
+const localStripTabs = ref(props.preprocess?.stripTabs ?? false)
+const localTrimLines = ref(props.preprocess?.trimLines ?? false)
 const advancedOpen = ref(false)
+
+function emitPreprocess() {
+  emit('update:preprocess', {
+    collapseWhitespace: localCollapseWhitespace.value,
+    normalizeNewlines: localNormalizeNewlines.value,
+    stripTabs: localStripTabs.value,
+    trimLines: localTrimLines.value,
+  })
+}
 
 const strategyOptions = computed(() => [
   {
@@ -364,6 +414,13 @@ watch(() => props.config, (newConfig) => {
   localStrategy.value = newConfig.strategy ?? ''
   localTokenLimit.value = newConfig.tokenLimit ?? 0
   localLanguages.value = [...(newConfig.languages ?? [])]
+}, { deep: true })
+
+watch(() => props.preprocess, (next) => {
+  localCollapseWhitespace.value = next?.collapseWhitespace ?? false
+  localNormalizeNewlines.value = next?.normalizeNewlines ?? false
+  localStripTabs.value = next?.stripTabs ?? false
+  localTrimLines.value = next?.trimLines ?? false
 }, { deep: true })
 
 const handleChunkSizeChange = () => { emitUpdate() }
@@ -457,6 +514,14 @@ const emitUpdate = () => {
   &.disabled {
     opacity: 0.5;
   }
+}
+
+.preprocess-switches {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 220px;
 }
 
 .strategy-info-panel {

@@ -77,6 +77,8 @@ type KnowledgeBase struct {
 	CreatorID string `yaml:"creator_id"              json:"creator_id"              gorm:"type:varchar(36);index"`
 	// Chunking configuration
 	ChunkingConfig ChunkingConfig `yaml:"chunking_config"         json:"chunking_config"         gorm:"type:json" extensions:"x-agent,x-agent-detail"`
+	// TextPreprocessConfig normalizes document text before chunking.
+	TextPreprocessConfig TextPreprocessConfig `yaml:"text_preprocess_config" json:"text_preprocess_config" gorm:"column:text_preprocess_config;type:json" extensions:"x-agent,x-agent-detail"`
 	// Image processing configuration
 	ImageProcessingConfig ImageProcessingConfig `yaml:"image_processing_config" json:"image_processing_config" gorm:"type:json" extensions:"x-agent,x-agent-detail"`
 	// ID of the embedding model. model.list returns the ids. Cannot change after the knowledge base has documents.
@@ -122,6 +124,10 @@ type KnowledgeBase struct {
 	// IndexingStrategy controls which indexing pipelines are active for this knowledge base.
 	// Pipelines: vector search, keyword search, wiki generation, knowledge graph extraction.
 	IndexingStrategy IndexingStrategy `yaml:"indexing_strategy"       json:"indexing_strategy"       gorm:"column:indexing_strategy;type:json" extensions:"x-agent,x-agent-response"`
+	// IsDefault marks the tenant's default knowledge base. At most one
+	// non-deleted KB per tenant should be default; SetDefaultKnowledgeBase
+	// clears the previous flag when promoting another KB.
+	IsDefault bool `yaml:"is_default"              json:"is_default"              gorm:"column:is_default;default:false"`
 	// IsPinned and PinnedAt are computed per-caller from user_kb_pins
 	// (see migration 000050). They used to be stored on the row itself,
 	// which made pinning a workspace-wide ordering decision gated behind
@@ -160,6 +166,8 @@ type KnowledgeBase struct {
 type KnowledgeBaseConfig struct {
 	// Chunking configuration
 	ChunkingConfig ChunkingConfig `yaml:"chunking_config"         json:"chunking_config"`
+	// TextPreprocessConfig replaces preprocessing settings when set. nil means no change.
+	TextPreprocessConfig *TextPreprocessConfig `yaml:"text_preprocess_config" json:"text_preprocess_config,omitempty"`
 	// Image processing configuration.
 	//
 	// nil means "no change" when updating, the same contract IndexingStrategy
@@ -740,6 +748,40 @@ func (c VLMConfig) IsEnabled() bool {
 		return true
 	}
 	return false
+}
+
+// TextPreprocessConfig controls optional text normalization before chunking.
+type TextPreprocessConfig struct {
+	// CollapseWhitespace merges consecutive spaces/newlines into single spaces (after newline normalize).
+	CollapseWhitespace bool `yaml:"collapse_whitespace" json:"collapse_whitespace" extensions:"x-agent"`
+	// NormalizeNewlines converts CRLF/CR to LF and collapses 3+ blank lines to 2.
+	NormalizeNewlines bool `yaml:"normalize_newlines" json:"normalize_newlines" extensions:"x-agent"`
+	// StripTabs replaces tab characters with a single space.
+	StripTabs bool `yaml:"strip_tabs" json:"strip_tabs" extensions:"x-agent"`
+	// TrimLines trims leading/trailing whitespace on each line.
+	TrimLines bool `yaml:"trim_lines" json:"trim_lines" extensions:"x-agent"`
+}
+
+// Enabled reports whether any preprocessing rule is on.
+func (c TextPreprocessConfig) Enabled() bool {
+	return c.CollapseWhitespace || c.NormalizeNewlines || c.StripTabs || c.TrimLines
+}
+
+// Value implements the driver.Valuer interface.
+func (c TextPreprocessConfig) Value() (driver.Value, error) {
+	return json.Marshal(c)
+}
+
+// Scan implements the sql.Scanner interface.
+func (c *TextPreprocessConfig) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	b, ok := value.([]byte)
+	if !ok {
+		return nil
+	}
+	return json.Unmarshal(b, c)
 }
 
 // QuestionGenerationConfig represents the question generation configuration for document knowledge bases

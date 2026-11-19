@@ -76,7 +76,7 @@ var queueDefinitions = []QueueDefinition{
 		TypeSummaryGeneration, TypeDataTableSummary, TypeKnowledgeAutoTag, TypeKnowledgeBaseProfile,
 	}},
 	{Name: QueueMultimodal, Pool: WorkerPoolEnrichment, Weight: 1, SharedWeight: 1, TaskTypes: []string{TypeImageMultimodal}},
-	{Name: QueueGraph, Pool: WorkerPoolEnrichment, Weight: 1, SharedWeight: 1, TaskTypes: []string{TypeChunkExtract}},
+	{Name: QueueGraph, Pool: WorkerPoolEnrichment, Weight: 1, SharedWeight: 1, TaskTypes: []string{TypeChunkExtract, TypeGraphSchemaIngest}},
 	{Name: QueueQuestion, Pool: WorkerPoolEnrichment, Weight: 1, SharedWeight: 1, TaskTypes: []string{TypeQuestionGeneration}},
 	{Name: QueueMemory, Pool: WorkerPoolEnrichment, Weight: 1, SharedWeight: 1, TaskTypes: []string{TypeMemoryExtract}},
 	{Name: QueueSync, Pool: WorkerPoolMaintenance, Weight: 2, TaskTypes: []string{TypeDataSourceSync}},
@@ -233,6 +233,7 @@ type WorkerServerStat struct {
 
 const (
 	TypeChunkExtract             = "chunk:extract"
+	TypeGraphSchemaIngest        = "graph:schema_ingest" // 知识定义表映射入库
 	TypeDocumentProcess          = "document:process"           // 文档处理任务
 	TypeFAQImport                = "faq:import"                 // FAQ导入任务（包含dry run模式）
 	TypeQuestionGeneration       = "question:generation"        // 问题生成任务

@@ -123,12 +123,40 @@ function serializeAuthHeaders(items: CustomHeaderItem[]): string {
 }
 
 function syncRssAuthHeadersToCredentials() {
-  if (form.value.type !== 'rss') return
+  if (form.value.type !== 'rss' && form.value.type !== 'http_api') return
   const serialized = serializeAuthHeaders(rssAuthHeaders.value)
   if (serialized) {
     form.value.config.credentials.auth_headers = serialized
   } else {
     delete form.value.config.credentials.auth_headers
+  }
+}
+
+function isFlatSingleResourceConnector(type: string) {
+  return type === 'http_api' || type === 'sql'
+}
+
+function mergeSettingsIntoCredentialsForValidate(creds: Record<string, any>) {
+  const settings = form.value.config.settings || {}
+  if (form.value.type === 'rss') {
+    creds.feed_urls = settings.feed_urls
+  }
+  if (form.value.type === 'http_api') {
+    for (const key of [
+      'base_url', 'list_path', 'detail_path_template', 'items_path',
+      'id_field', 'title_field', 'content_field', 'updated_at_field', 'url_field',
+      'page_param', 'page_size_param', 'page_size', 'max_pages', 'max_items', 'auth_type',
+    ]) {
+      if (settings[key] !== undefined && settings[key] !== '') creds[key] = settings[key]
+    }
+  }
+  if (form.value.type === 'sql') {
+    for (const key of [
+      'driver', 'query', 'table', 'where', 'id_column', 'title_column',
+      'content_columns', 'content_template', 'incremental_column', 'page_size', 'max_rows',
+    ]) {
+      if (settings[key] !== undefined && settings[key] !== '') creds[key] = settings[key]
+    }
   }
 }
 
@@ -782,6 +810,34 @@ const connectorDefs = computed<ConnectorDef[]>(() => [
       { key: 'app_password', labelKey: 'datasource.nextcloud.appPassword', placeholder: '', secret: true, hintKey: 'datasource.nextcloud.appPasswordHint' },
     ],
   },
+  {
+    type: 'http_api',
+    available: true,
+    docUrl: '',
+    permissionDocUrl: '',
+    permissionPageUrl: '',
+    requiredPermissions: [],
+    fields: [
+      { key: 'token', labelKey: 'datasource.field.apiToken', placeholder: '', secret: true, optional: true, hintKey: 'datasource.httpApi.tokenHint' },
+      { key: 'auth_headers', labelKey: 'datasource.field.authHeaders', placeholder: '', optional: true, hintKey: 'datasource.field.authHeadersHint', fieldType: 'custom_headers' },
+    ],
+  },
+  {
+    type: 'sql',
+    available: true,
+    docUrl: '',
+    permissionDocUrl: '',
+    permissionPageUrl: '',
+    requiredPermissions: [],
+    fields: [
+      { key: 'host', labelKey: 'datasource.sql.host', placeholder: '127.0.0.1' },
+      { key: 'port', labelKey: 'datasource.sql.port', placeholder: '5432' },
+      { key: 'database', labelKey: 'datasource.sql.database', placeholder: 'mydb' },
+      { key: 'user', labelKey: 'datasource.sql.user', placeholder: 'readonly' },
+      { key: 'password', labelKey: 'datasource.sql.password', placeholder: '', secret: true },
+      { key: 'ssl_mode', labelKey: 'datasource.sql.sslMode', placeholder: 'disable', optional: true, hintKey: 'datasource.sql.sslModeHint' },
+    ],
+  },
 ])
 
 
@@ -964,6 +1020,28 @@ function selectType(def: ConnectorDef) {
   if (def.type === 'yuque' && !isEdit.value) {
     form.value.config.settings = { ...form.value.config.settings, folder_mode: 'toc' }
   }
+  if (def.type === 'http_api') {
+    form.value.config.settings = {
+      ...form.value.config.settings,
+      auth_type: form.value.config.settings.auth_type || 'bearer',
+      id_field: form.value.config.settings.id_field || 'id',
+      title_field: form.value.config.settings.title_field || 'title',
+      content_field: form.value.config.settings.content_field || 'content',
+      updated_at_field: form.value.config.settings.updated_at_field || 'updated_at',
+      page_param: form.value.config.settings.page_param || 'page',
+      page_size_param: form.value.config.settings.page_size_param || 'page_size',
+      page_size: form.value.config.settings.page_size || 50,
+    }
+  }
+  if (def.type === 'sql') {
+    form.value.config.settings = {
+      ...form.value.config.settings,
+      driver: form.value.config.settings.driver || 'postgres',
+      id_column: form.value.config.settings.id_column || 'id',
+      title_column: form.value.config.settings.title_column || 'title',
+    }
+    form.value.config.credentials.port = form.value.config.credentials.port || '5432'
+  }
   if (isGitLabConnector(def.type)) addGitLabProject()
   rssAuthHeaders.value = []
   step.value = 1
@@ -974,6 +1052,8 @@ async function testConnection() {
   syncRssAuthHeadersToCredentials()
   syncConfluencePublicFieldsToSettings()
   if (!validateRssFeedUrls()) return
+  if (!validateHttpApiSettings()) return
+  if (!validateSqlSettings()) return
   if (!isEdit.value || !credentialsConfigured.value || replaceCredentialsMode.value) {
     const fields = displayedCredentialFields.value
     for (const f of fields) {
@@ -1000,10 +1080,8 @@ async function testConnection() {
       await validateConnection(tempDsId.value)
     } else {
       const creds = { ...form.value.config.credentials }
-      if (form.value.type === 'rss') {
-        // validate-credentials is credentials-only; feed URLs live in settings.
-        creds.feed_urls = form.value.config.settings.feed_urls
-      }
+      // validate-credentials is credentials-only; non-secret options live in settings.
+      mergeSettingsIntoCredentialsForValidate(creds)
       await validateCredentials(form.value.type, creds)
     }
     testResult.value = 'success'
@@ -1146,6 +1224,10 @@ async function loadResources() {
         .filter(r => !r.parent_id && r.has_children && parentsWithChildren.has(r.external_id))
         .map(r => r.external_id),
     )
+    // HTTP API / SQL expose a single logical resource; select it automatically.
+    if (isFlatSingleResourceConnector(form.value.type) && resources.value.length === 1) {
+      selectedResourceIds.value = [resources.value[0].external_id]
+    }
     // When editing a lazily-loaded source, reveal pre-existing selections that
     // live below the (not-yet-loaded) tree so they are visible and checked.
     if (isEdit.value && !treeFullyLoaded.value) {
@@ -1273,9 +1355,39 @@ function validateRssFeedUrls(): boolean {
   return true
 }
 
+function validateHttpApiSettings(): boolean {
+  if (form.value.type !== 'http_api') return true
+  const s = form.value.config.settings || {}
+  if (!String(s.base_url || '').trim()) {
+    MessagePlugin.warning(`${t('datasource.httpApi.baseUrl')} ${t('datasource.isRequired')}`)
+    return false
+  }
+  if (!String(s.list_path || '').trim()) {
+    MessagePlugin.warning(`${t('datasource.httpApi.listPath')} ${t('datasource.isRequired')}`)
+    return false
+  }
+  return true
+}
+
+function validateSqlSettings(): boolean {
+  if (form.value.type !== 'sql') return true
+  const s = form.value.config.settings || {}
+  if (!String(s.driver || 'postgres').trim()) {
+    MessagePlugin.warning(`${t('datasource.sql.driver')} ${t('datasource.isRequired')}`)
+    return false
+  }
+  if (!String(s.query || '').trim() && !String(s.table || '').trim()) {
+    MessagePlugin.warning(t('datasource.sql.queryOrTableRequired'))
+    return false
+  }
+  return true
+}
+
 function validateStep1Fields(): boolean {
   syncRssAuthHeadersToCredentials()
   if (!validateRssFeedUrls()) return false
+  if (!validateHttpApiSettings()) return false
+  if (!validateSqlSettings()) return false
   if (isEdit.value && credentialsConfigured.value && !replaceCredentialsMode.value) {
     return true
   }
@@ -1736,6 +1848,96 @@ const drawerConfirmText = computed(() => {
             spellcheck="false"
           />
           <p class="form-desc">{{ t('datasource.field.feedUrlsHint') }}</p>
+        </div>
+      </section>
+
+      <section v-if="form.type === 'http_api'" class="setting-drawer__section">
+        <h4 class="setting-drawer__section-title">{{ t('datasource.httpApi.section') }}</h4>
+        <div class="form-item">
+          <label class="form-label required">{{ t('datasource.httpApi.baseUrl') }}</label>
+          <t-input v-model="form.config.settings.base_url" placeholder="https://api.example.com" />
+        </div>
+        <div class="form-item">
+          <label class="form-label required">{{ t('datasource.httpApi.listPath') }}</label>
+          <t-input v-model="form.config.settings.list_path" placeholder="/api/v1/articles" />
+          <p class="form-desc">{{ t('datasource.httpApi.listPathHint') }}</p>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.httpApi.itemsPath') }}</label>
+          <t-input v-model="form.config.settings.items_path" placeholder="data" />
+          <p class="form-desc">{{ t('datasource.httpApi.itemsPathHint') }}</p>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.httpApi.detailPath') }}</label>
+          <t-input v-model="form.config.settings.detail_path_template" placeholder="/api/v1/articles/{id}" />
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.httpApi.authType') }}</label>
+          <t-select v-model="form.config.settings.auth_type">
+            <t-option value="bearer" :label="t('datasource.httpApi.authBearer')" />
+            <t-option value="header" :label="t('datasource.httpApi.authHeader')" />
+            <t-option value="none" :label="t('datasource.httpApi.authNone')" />
+          </t-select>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.httpApi.fieldMapping') }}</label>
+          <div class="form-grid-2">
+            <t-input v-model="form.config.settings.id_field" :placeholder="t('datasource.httpApi.idField')" />
+            <t-input v-model="form.config.settings.title_field" :placeholder="t('datasource.httpApi.titleField')" />
+            <t-input v-model="form.config.settings.content_field" :placeholder="t('datasource.httpApi.contentField')" />
+            <t-input v-model="form.config.settings.updated_at_field" :placeholder="t('datasource.httpApi.updatedAtField')" />
+          </div>
+        </div>
+      </section>
+
+      <section v-if="form.type === 'sql'" class="setting-drawer__section">
+        <h4 class="setting-drawer__section-title">{{ t('datasource.sql.section') }}</h4>
+        <div class="form-item">
+          <label class="form-label required">{{ t('datasource.sql.driver') }}</label>
+          <t-select v-model="form.config.settings.driver" @change="(v: string) => {
+            if (v === 'mysql' && (!form.config.credentials.port || form.config.credentials.port === '5432')) {
+              form.config.credentials.port = '3306'
+            }
+            if (v === 'postgres' && (!form.config.credentials.port || form.config.credentials.port === '3306')) {
+              form.config.credentials.port = '5432'
+            }
+          }">
+            <t-option value="postgres" label="PostgreSQL" />
+            <t-option value="mysql" label="MySQL" />
+          </t-select>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.sql.table') }}</label>
+          <t-input v-model="form.config.settings.table" placeholder="knowledge_articles" />
+          <p class="form-desc">{{ t('datasource.sql.tableHint') }}</p>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.sql.query') }}</label>
+          <t-textarea
+            v-model="form.config.settings.query"
+            placeholder="SELECT id, title, body AS content, updated_at FROM articles"
+            :autosize="{ minRows: 3, maxRows: 8 }"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p class="form-desc">{{ t('datasource.sql.queryHint') }}</p>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.sql.columnMapping') }}</label>
+          <div class="form-grid-2">
+            <t-input v-model="form.config.settings.id_column" :placeholder="t('datasource.sql.idColumn')" />
+            <t-input v-model="form.config.settings.title_column" :placeholder="t('datasource.sql.titleColumn')" />
+            <t-input v-model="form.config.settings.content_columns" :placeholder="t('datasource.sql.contentColumns')" />
+            <t-input v-model="form.config.settings.incremental_column" :placeholder="t('datasource.sql.incrementalColumn')" />
+          </div>
+        </div>
+        <div class="form-item">
+          <label class="form-label">{{ t('datasource.sql.contentTemplate') }}</label>
+          <t-textarea
+            v-model="form.config.settings.content_template"
+            :placeholder="t('datasource.sql.contentTemplatePlaceholder')"
+            :autosize="{ minRows: 2, maxRows: 6 }"
+          />
         </div>
       </section>
 
@@ -2603,6 +2805,12 @@ const drawerConfirmText = computed(() => {
   height: 28px;
   padding: 0 12px;
   font-size: var(--app-text-sm);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .form-item {

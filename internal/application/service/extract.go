@@ -188,6 +188,7 @@ type ChunkExtractService struct {
 	knowledgeRepo     interfaces.KnowledgeRepository
 	chunkRepo         interfaces.ChunkRepository
 	graphEngine       interfaces.RetrieveGraphRepository
+	graphSchemaRepo   interfaces.GraphSchemaRepository
 	// spanTracker records this graph-extract task's subspan under the
 	// parent attempt's postprocess stage so the trace viewer shows real
 	// per-chunk graph extraction time rather than the upstream's enqueue.
@@ -202,11 +203,13 @@ func NewChunkExtractService(
 	knowledgeRepo interfaces.KnowledgeRepository,
 	chunkRepo interfaces.ChunkRepository,
 	graphEngine interfaces.RetrieveGraphRepository,
+	graphSchemaRepo interfaces.GraphSchemaRepository,
 	spanTracker SpanTracker,
 ) interfaces.TaskHandler {
 	return &ChunkExtractService{
 		template:          config.ExtractManager.ExtractGraph,
 		modelService:      modelService,
+		graphSchemaRepo:   graphSchemaRepo,
 		knowledgeBaseRepo: knowledgeBaseRepo,
 		knowledgeRepo:     knowledgeRepo,
 		chunkRepo:         chunkRepo,
@@ -341,10 +344,47 @@ func (s *ChunkExtractService) Handle(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
+	tags := extractCfg.Tags
+	customInstructions := extractCfg.CustomInstructions
+	// Prefer KB graph schema constraints when defined; merge relation names into tags
+	// so GraphSettings few-shot and schema stay aligned.
+	if s.graphSchemaRepo != nil {
+		if bundle, berr := s.graphSchemaRepo.LoadBundle(ctx, p.TenantID, chunk.KnowledgeBaseID); berr == nil {
+			hints := CompileExtractHintsFromBundle(bundle)
+			if hints.CustomInstructions != "" {
+				if customInstructions != "" {
+					customInstructions = hints.CustomInstructions + "\n\n" + customInstructions
+				} else {
+					customInstructions = hints.CustomInstructions
+				}
+			}
+			if len(hints.Tags) > 0 {
+				seen := make(map[string]struct{}, len(tags)+len(hints.Tags))
+				merged := make([]string, 0, len(tags)+len(hints.Tags))
+				for _, t := range hints.Tags {
+					if _, ok := seen[t]; ok {
+						continue
+					}
+					seen[t] = struct{}{}
+					merged = append(merged, t)
+				}
+				for _, t := range tags {
+					if _, ok := seen[t]; ok {
+						continue
+					}
+					seen[t] = struct{}{}
+					merged = append(merged, t)
+				}
+				tags = merged
+			}
+		} else {
+			logger.Debugf(ctx, "graph schema load skipped for kb %s: %v", chunk.KnowledgeBaseID, berr)
+		}
+	}
 	template := &types.PromptTemplateStructured{
 		Description: types.AppendCustomPromptInstructions(
-			s.template.Description, extractCfg.CustomInstructions, "graph_extraction"),
-		Tags: extractCfg.Tags,
+			s.template.Description, customInstructions, "graph_extraction"),
+		Tags: tags,
 		Examples: []types.GraphData{
 			{
 				Text:     extractCfg.Text,

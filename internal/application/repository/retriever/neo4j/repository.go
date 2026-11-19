@@ -81,10 +81,20 @@ func (n *Neo4jRepository) addGraph(ctx context.Context, namespace types.NameSpac
 		`
 		nodeData := []map[string]interface{}{}
 		for _, node := range graph.Node {
+			props := map[string]interface{}{
+				"attributes": node.Attributes,
+			}
+			// Optional schema metadata; omitted on legacy extract results.
+			if node.EntityCode != "" {
+				props["entity_code"] = node.EntityCode
+			}
+			if node.EntityCategory != "" {
+				props["entity_category"] = node.EntityCategory
+			}
 			nodeData = append(nodeData, map[string]interface{}{
 				"name":         node.Name,
 				"knowledge_id": namespace.Knowledge,
-				"props":        map[string][]string{"attributes": node.Attributes},
+				"props":        props,
 				"chunks":       node.Chunks,
 				"labels":       n.Labels(namespace),
 			})
@@ -109,11 +119,16 @@ func (n *Neo4jRepository) addGraph(ctx context.Context, namespace types.NameSpac
 		`
 		relData := []map[string]interface{}{}
 		for _, rel := range graph.Relation {
+			relAttrs := map[string]interface{}{}
+			if rel.RelationCode != "" {
+				relAttrs["relation_code"] = rel.RelationCode
+			}
 			relData = append(relData, map[string]interface{}{
 				"source":        rel.Node1,
 				"target":        rel.Node2,
 				"knowledge_id":  namespace.Knowledge,
 				"type":          rel.Type,
+				"attributes":    relAttrs,
 				"source_labels": n.Labels(namespace),
 				"target_labels": n.Labels(namespace),
 			})

@@ -258,6 +258,7 @@ type SyncTaskParams struct {
 	DataSourceService    interfaces.DataSourceService
 	SpanTracker          service.SpanTracker
 	ChunkExtractor       interfaces.TaskHandler `name:"chunkExtractor"`
+	GraphSchemaService   interfaces.GraphSchemaService
 	DataTableSummary     interfaces.TaskHandler `name:"dataTableSummary"`
 	ImageMultimodal      interfaces.TaskHandler `name:"imageMultimodal"`
 	KnowledgePostProcess interfaces.TaskHandler `name:"knowledgePostProcess"`
@@ -276,6 +277,9 @@ func RegisterSyncHandlers(params SyncTaskParams) {
 		params.Executor.SetFinalFailureHook(failer)
 	}
 	params.Executor.RegisterHandler(types.TypeChunkExtract, params.ChunkExtractor.Handle)
+	if params.GraphSchemaService != nil {
+		params.Executor.RegisterHandler(types.TypeGraphSchemaIngest, params.GraphSchemaService.ProcessIngestTask)
+	}
 	params.Executor.RegisterHandler(types.TypeDataTableSummary, params.DataTableSummary.Handle)
 	params.Executor.RegisterHandler(types.TypeDocumentProcess, params.KnowledgeService.ProcessDocument)
 	params.Executor.RegisterHandler(types.TypeTemporaryDocumentProcess, params.TemporaryDocument.Process)

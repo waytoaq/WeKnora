@@ -13,6 +13,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -119,6 +121,28 @@ var registry = map[string]settingSpec{
 	// docreader / the in-page bundle is worse than not having it.
 	// Keep MAX_FILE_SIZE_MB as a deploy-time env var until all four
 	// layers can be reconfigured in lockstep without restarts.
+	// branding.system_name / branding.logo are the platform wordmark shown in
+	// the sidebar, login page and document title. Empty values mean "use the
+	// built-in frontend default" so a fresh deploy looks identical to today.
+	// Both are read by the public /auth/config endpoint so the login page can
+	// render them before the user authenticates. Edits take effect on the
+	// next config fetch — no restart.
+	"branding.system_name": {
+		Type:     "string",
+		EnvName:  "WEKNORA_SYSTEM_NAME",
+		Default:  "",
+		Category: "branding",
+		Description: "系统显示名称。出现在侧栏、登录页与浏览器标题。" +
+			"留空则使用前端内置默认名称。修改后立即生效，无需重启。",
+	},
+	"branding.logo": {
+		Type:     "string",
+		EnvName:  "WEKNORA_SYSTEM_LOGO",
+		Default:  "",
+		Category: "branding",
+		Description: "系统 Logo。支持 data:image/...;base64,... 或 http(s) 图片地址。" +
+			"留空则只显示系统名称文字。建议正方形 PNG/SVG，体积不超过 256KB。修改后立即生效。",
+	},
 	"ssrf.whitelist": {
 		Type:     "string_list",
 		EnvName:  "SSRF_WHITELIST",
@@ -1377,6 +1401,12 @@ func encodeForType(declared string, rawValue any) (types.JSON, error) {
 //   - keep them deterministic (no DNS lookups, no env reads),
 //   - keep error messages user-facing (the handler surfaces them as the
 //     400 body verbatim).
+const (
+	brandingSystemNameMaxRunes = 64
+	// ~256 KiB of binary ≈ 350k base64 chars; keep headroom for the data-URI prefix.
+	brandingLogoMaxChars = 360_000
+)
+
 func validateRegistryEntry(key string, rawValue any) error {
 	switch key {
 	case "asynq.core_concurrency", "asynq.postprocess_concurrency",
@@ -1398,8 +1428,56 @@ func validateRegistryEntry(key string, rawValue any) error {
 			return err
 		}
 		return utils.ValidateSSRFWhitelistEntries(entries)
+	case "branding.system_name":
+		return validateBrandingSystemName(rawValue)
+	case "branding.logo":
+		return validateBrandingLogo(rawValue)
 	}
 	return nil
+}
+
+func validateBrandingSystemName(rawValue any) error {
+	s, ok := rawValue.(string)
+	if !ok {
+		return fmt.Errorf("expected string, got %T", rawValue)
+	}
+	if utf8.RuneCountInString(s) > brandingSystemNameMaxRunes {
+		return fmt.Errorf("system name must be at most %d characters", brandingSystemNameMaxRunes)
+	}
+	for _, r := range s {
+		if unicode.IsControl(r) {
+			return errors.New("system name must not contain control characters")
+		}
+	}
+	return nil
+}
+
+func validateBrandingLogo(rawValue any) error {
+	s, ok := rawValue.(string)
+	if !ok {
+		return fmt.Errorf("expected string, got %T", rawValue)
+	}
+	if s == "" {
+		return nil
+	}
+	if len(s) > brandingLogoMaxChars {
+		return errors.New("logo is too large (max ~256KB)")
+	}
+	lower := strings.ToLower(s)
+	switch {
+	case strings.HasPrefix(lower, "data:image/"):
+		if !strings.Contains(lower[:min(64, len(lower))], ",") {
+			return errors.New("logo data URI is missing payload")
+		}
+		return nil
+	case strings.HasPrefix(lower, "https://"), strings.HasPrefix(lower, "http://"):
+		if len(s) > 2048 {
+			return errors.New("logo URL is too long")
+		}
+		return nil
+	default:
+		return errors.New("logo must be a data:image/... URI or an http(s) URL")
+	}
 }
 
 // coerceToPositiveInt64 accepts int / int64 / float64 from JSON decoding.

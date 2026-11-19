@@ -40,6 +40,7 @@ type AsynqTaskParams struct {
 	TagService           interfaces.KnowledgeTagService
 	DataSourceService    interfaces.DataSourceService
 	ChunkExtractor       interfaces.TaskHandler `name:"chunkExtractor"`
+	GraphSchemaService   interfaces.GraphSchemaService
 	DataTableSummary     interfaces.TaskHandler `name:"dataTableSummary"`
 	ImageMultimodal      interfaces.TaskHandler `name:"imageMultimodal"`
 	KnowledgePostProcess interfaces.TaskHandler `name:"knowledgePostProcess"`
@@ -264,6 +265,9 @@ func RunAsynqServer(params AsynqTaskParams) *asynq.ServeMux {
 
 	// Register extract handlers - router will dispatch to appropriate handler
 	mux.HandleFunc(types.TypeChunkExtract, params.ChunkExtractor.Handle)
+	if params.GraphSchemaService != nil {
+		mux.HandleFunc(types.TypeGraphSchemaIngest, params.GraphSchemaService.ProcessIngestTask)
+	}
 	mux.HandleFunc(types.TypeDataTableSummary, params.DataTableSummary.Handle)
 
 	// Register document processing handler

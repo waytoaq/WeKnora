@@ -167,6 +167,9 @@
                 <KbTypeAvatar :type="kb.type" />
                 <span class="card-title" :title="kb.name">
                   <span class="card-title-text">{{ kb.name }}</span>
+                  <t-tag v-if="kb.is_default" size="small" theme="primary" variant="light" class="kb-default-tag">
+                    {{ $t('knowledgeList.default.badge') }}
+                  </t-tag>
                 </span>
                 <!-- The card menu always exists when the card is visible: pin
                      is now per-user and available to anyone who can see the KB
@@ -190,6 +193,10 @@
                         <span>{{ $t('knowledgeList.menu.duplicate') }}</span>
                       </div>
                       <template v-if="canManageKBCard(kb)">
+                        <div class="popup-menu-item" @click.stop="handleSetDefaultById(kb.id, !kb.is_default)">
+                          <t-icon class="menu-icon" :name="kb.is_default ? 'check-circle-filled' : 'check-circle'" />
+                          <span>{{ kb.is_default ? $t('knowledgeList.default.unset') : $t('knowledgeList.default.set') }}</span>
+                        </div>
                         <div class="popup-menu-item" @click.stop="handleSettingsById(kb.id)">
                           <t-icon class="menu-icon" name="setting" />
                           <span>{{ $t('knowledgeBase.settings') }}</span>
@@ -401,6 +408,9 @@
                 <KbTypeAvatar :type="kb.type" />
                 <span class="card-title" :title="kb.name">
                   <span class="card-title-text">{{ kb.name }}</span>
+                  <t-tag v-if="kb.is_default" size="small" theme="primary" variant="light" class="kb-default-tag">
+                    {{ $t('knowledgeList.default.badge') }}
+                  </t-tag>
                 </span>
                 <!-- See the matching block in the "all" tab template for why
                      this is no longer gated by canManageKBCard. -->
@@ -421,6 +431,10 @@
                         <span>{{ $t('knowledgeList.menu.duplicate') }}</span>
                       </div>
                       <template v-if="canManageKBCard(kb)">
+                        <div class="popup-menu-item" @click.stop="handleSetDefault(kb, !kb.is_default)">
+                          <t-icon class="menu-icon" :name="kb.is_default ? 'check-circle-filled' : 'check-circle'" />
+                          <span>{{ kb.is_default ? $t('knowledgeList.default.unset') : $t('knowledgeList.default.set') }}</span>
+                        </div>
                         <div class="popup-menu-item" @click.stop="handleSettings(kb)">
                           <t-icon class="menu-icon" name="setting" />
                           <span>{{ $t('knowledgeBase.settings') }}</span>
@@ -718,7 +732,7 @@ import { MessagePlugin, Icon as TIcon } from 'tdesign-vue-next'
 import EmptyState from '@/components/EmptyState.vue'
 import ResourceIcon from '@/components/icons/ResourceIcon.vue'
 import { useConfirmDelete } from '@/components/settings/useConfirmDelete'
-import { deleteKnowledgeBase, duplicateKnowledgeBase, togglePinKnowledgeBase } from '@/api/knowledge-base'
+import { deleteKnowledgeBase, duplicateKnowledgeBase, setDefaultKnowledgeBase, togglePinKnowledgeBase } from '@/api/knowledge-base'
 import { useChatResourcesStore } from '@/stores/chatResources'
 import { formatStringDate } from '@/utils/index'
 import { useUIStore } from '@/stores/ui'
@@ -801,6 +815,7 @@ interface KB {
   processing_count?: number;
   share_count?: number;
   is_pinned?: boolean;
+  is_default?: boolean;
   // creator_id is the owner-id matched against authStore.user.id when
   // gating the per-card more-menu (Settings / Delete). Empty for legacy
   // KBs created before PR 5; those fall back to the role gate.
@@ -1360,6 +1375,36 @@ const handleTogglePinById = async (id: string) => {
   }
 }
 
+const handleSetDefault = async (kb: KB, isDefault: boolean) => {
+  openKbMenuId.value = null
+  try {
+    const res: any = await setDefaultKnowledgeBase(kb.id, isDefault)
+    if (res.success) {
+      MessagePlugin.success(
+        res.data.is_default ? t('knowledgeList.default.setSuccess') : t('knowledgeList.default.unsetSuccess')
+      )
+      fetchList(true)
+    }
+  } catch {
+    MessagePlugin.error(t('knowledgeList.default.failed'))
+  }
+}
+
+const handleSetDefaultById = async (id: string, isDefault: boolean) => {
+  openKbMenuId.value = null
+  try {
+    const res: any = await setDefaultKnowledgeBase(id, isDefault)
+    if (res.success) {
+      MessagePlugin.success(
+        res.data.is_default ? t('knowledgeList.default.setSuccess') : t('knowledgeList.default.unsetSuccess')
+      )
+      fetchList(true)
+    }
+  } catch {
+    MessagePlugin.error(t('knowledgeList.default.failed'))
+  }
+}
+
 const handleDuplicate = async (kb: KB) => {
   openKbMenuId.value = null
   await duplicateKB(kb.id)
@@ -1811,6 +1856,18 @@ watch(keyword, () => { collapsedKbSections.value = new Set() })
 
   &.uninitialized {
     opacity: 0.9;
+  }
+
+  .kb-default-tag {
+    margin-left: 6px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  .card-title {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
   }
 
   .kb-favorite-star {

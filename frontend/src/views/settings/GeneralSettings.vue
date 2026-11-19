@@ -29,7 +29,7 @@
         </div>
       </div>
 
-      <!-- 主题设置 -->
+      <!-- 主题：浅蓝玻璃拟态固定浅色 -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ $t('theme.theme') }}</label>
@@ -40,11 +40,9 @@
             v-model="localTheme"
             style="width: 280px;"
             :placeholder="$t('theme.selectTheme')"
-            @change="handleThemeChange"
+            disabled
           >
             <t-option value="light" :label="$t('theme.light')">{{ $t('theme.light') }}</t-option>
-            <t-option value="dark" :label="$t('theme.dark')">{{ $t('theme.dark') }}</t-option>
-            <t-option value="system" :label="$t('theme.system')">{{ $t('theme.system') }}</t-option>
           </t-select>
         </div>
       </div>

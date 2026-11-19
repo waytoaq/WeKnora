@@ -7,6 +7,7 @@ import ProtectedResourcePreview from '@/components/ProtectedResourcePreview.vue'
 import ManualKnowledgeEditor from '@/components/manual-knowledge-editor.vue'
 import UploadConfirmHost from '@/components/UploadConfirmHost.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBrandingStore } from '@/stores/branding'
 import { useSettingsStore } from '@/stores/settings'
 import { getCurrentUser, userInfoFromApi } from '@/api/auth'
 import { consumePendingTenantSwitchToast } from '@/utils/tenantSwitch'
@@ -26,6 +27,7 @@ const { locale, t, tm } = useI18n()
 const { formatRole, roleIcon } = useRoleLabel()
 const router = useRouter()
 const authStore = useAuthStore()
+const brandingStore = useBrandingStore()
 const settingsStore = useSettingsStore()
 
 const tdLocaleMap: Record<string, object> = {
@@ -243,6 +245,7 @@ const showPendingTenantSwitchToast = () => {
 onMounted(() => {
   handleGlobalOIDCCallback()
   showPendingTenantSwitchToast()
+  void brandingStore.load()
 
   // Auto check for updates on startup
   setTimeout(() => {
@@ -287,8 +290,9 @@ onUnmounted(() => {
 </template>
 <style>
 html {
-  /* 提示 UA 使用对应配色绘制滚动条等，减少主题切换时的额外重绘 */
-  color-scheme: light dark;
+  color-scheme: light;
+  background: var(--app-page-gradient);
+  background-attachment: fixed;
 }
 
 body,
@@ -302,8 +306,12 @@ html,
   font-family: var(--app-font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--td-bg-color-page);
   color: var(--td-text-color-primary);
+}
+
+body,
+#app {
+  background: transparent;
 }
 
 #app {

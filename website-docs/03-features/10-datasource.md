@@ -1,8 +1,13 @@
 # 数据源导入（Data Source）
 
-数据源将飞书、Notion、Confluence、语雀等平台的内容持续同步到知识库。连接建立后，可按计划获取新增与修改；来源删除的内容按同步配置处理。
+数据源将飞书、Notion、Confluence、语雀等平台的内容持续同步到知识库，并支持业务系统 HTTP API 与关系库 SQL 采集。连接建立后，可按计划获取新增与修改；来源删除的内容按同步配置处理。
 
-数据源在知识库中配置。打开目标知识库的编辑设置，进入「数据源」页签，新建连接并填写凭据，然后选择同步范围与周期。首次同步获取完整内容，后续同步根据连接器能力增量更新。
+在产品能力上，数据源对应「知识采集」：
+
+- **业务知识采集**：飞书 / Notion / 语雀 / HTTP API 等业务系统连接器
+- **数据库知识采集**：`sql` 连接器，从 PostgreSQL / MySQL 按表或只读 SQL 同步行数据为文档
+
+数据源在知识库中配置。打开目标知识库的编辑设置，进入「知识采集」页签，新建连接并填写凭据，然后选择同步范围与周期。首次同步获取完整内容，后续同步根据连接器能力增量更新。文本分段、预处理与知识化选项见知识库「知识采集配置」。
 
 <Screenshot
   src="/screenshots/datasource-sync.png"
@@ -37,8 +42,39 @@
 | Seafile | `seafile` | 资料库中的目录与文件 |
 | Nextcloud | `nextcloud` | WebDAV 目录与文件，见 [Nextcloud data source](26-nextcloud.md) |
 | RSS / Atom | `rss` | 订阅源文章 |
+| HTTP API | `http_api` | 业务系统 JSON 列表 / 详情接口 |
+| SQL 数据库 | `sql` | PostgreSQL / MySQL 表或只读 SELECT |
 
 各连接器支持的格式、认证与删除检测见参考部分。
+
+### HTTP API（`http_api`）
+
+用于自建业务系统。凭据可配置 Bearer Token 或自定义请求头；设置项包括：
+
+| 字段 | 说明 |
+| --- | --- |
+| `base_url` | API 根地址 |
+| `list_path` | 列表接口路径或完整 URL |
+| `items_path` | 列表数组 JSON 路径（如 `data` / `data.items`） |
+| `detail_path_template` | 可选详情模板，含 `{id}` |
+| `id_field` / `title_field` / `content_field` / `updated_at_field` | 字段映射 |
+| `auth_type` | `bearer` / `header` / `none` |
+
+增量同步按记录 `updated_at` 游标比对。每条记录写入 Markdown 知识条目。
+
+### SQL（`sql`）
+
+用于关系库知识采集。建议使用只读账号。凭据含 `driver`（`postgres`|`mysql`）、主机、库名、用户与密码；设置项包括：
+
+| 字段 | 说明 |
+| --- | --- |
+| `query` 或 `table` | 只读 SELECT / CTE，或表名（自动 `SELECT *`） |
+| `id_column` / `title_column` / `content_columns` | 列映射 |
+| `content_template` | 可选 `{{column}}` 正文模板 |
+| `incremental_column` | 增量列（如 `updated_at`） |
+| `page_size` / `max_rows` | 分页与行数上限 |
+
+仅允许单条 SELECT/CTE；多语句与写操作会被拒绝。行数据同步为 Markdown 文档进入向量索引（与知识定义中的表映射入库到 Neo4j 不同）。
 
 ## 检查变更与失败
 

@@ -271,6 +271,10 @@ export interface AuthConfigResponse {
   success: boolean
   registration_mode: 'self_serve' | 'invite_register' | 'invite_only' | string
   complex_password_enabled: boolean
+  /** Platform wordmark; empty means use the frontend built-in default. */
+  system_name?: string
+  /** data:image/... or http(s) URL; empty means text-only wordmark. */
+  logo?: string
 }
 
 export async function getAuthConfig(): Promise<AuthConfigResponse> {
@@ -278,7 +282,13 @@ export async function getAuthConfig(): Promise<AuthConfigResponse> {
     const response = await get('/api/v1/auth/config')
     return response as unknown as AuthConfigResponse
   } catch {
-    return { success: false, registration_mode: '', complex_password_enabled: false }
+    return {
+      success: false,
+      registration_mode: '',
+      complex_password_enabled: false,
+      system_name: '',
+      logo: '',
+    }
   }
 }
 
